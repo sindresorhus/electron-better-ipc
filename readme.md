@@ -29,7 +29,7 @@ Here, as an example, we use the built-in IPC to get an emoji by name in the rend
 ```js
 const {ipcMain: ipc} = require('electron');
 
-ipc.on('get-emoji', async event => {
+ipc.on('get-emoji', async (event, {emojiName}) => {
 	const emoji = await getEmoji(emojiName);
 	event.sender.send('get-emoji-response', emoji);
 });
