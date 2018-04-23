@@ -1,0 +1,51 @@
+{
+	"name": "electron-better-ipc",
+	"version": "0.0.0",
+	"description": "Simplified IPC communication for Electron apps",
+	"license": "MIT",
+	"repository": "sindresorhus/electron-better-ipc",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "sindresorhus.com"
+	},
+	"scripts": {
+		"test": "xo && cd test/fixture && ava"
+	},
+	"files": [
+		"index.js",
+		"source"
+	],
+	"keywords": [
+		"electron",
+		"ipc",
+		"communication",
+		"communicate",
+		"app",
+		"message",
+		"messages",
+		"send",
+		"receive",
+		"call",
+		"answer",
+		"reply",
+		"async",
+		"await"
+	],
+	"devDependencies": {
+		"ava": "*",
+		"electron": "^1.8.4",
+		"execa": "^0.10.0",
+		"spectron": "^3.8.0",
+		"xo": "*"
+	},
+	"peerDependencies": {
+		"electron": ">=1.8.4"
+	},
+	"xo": {
+		"envs": [
+			"node",
+			"browser"
+		]
+	}
+}
