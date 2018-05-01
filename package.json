@@ -39,9 +39,6 @@
 		"spectron": "^3.8.0",
 		"xo": "*"
 	},
-	"peerDependencies": {
-		"electron": ">=1.8.4"
-	},
 	"xo": {
 		"envs": [
 			"node",
