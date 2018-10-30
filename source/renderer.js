@@ -1,5 +1,5 @@
 'use strict';
-const electron = require('electron');
+const electron = window.require('electron');
 const util = require('./util');
 
 const {ipcRenderer: ipc} = electron;
