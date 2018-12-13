@@ -140,6 +140,8 @@ Data to send to the receiver.
 
 This method listens for a message from `ipc.callMain` defined in a renderer process and replies back.
 
+Returns a function, that when called, removes the listener.
+
 #### channel
 
 Type: `string`
@@ -191,6 +193,8 @@ Data to send to the receiver.
 ### ipc.answerMain(channel, callback)
 
 This method listens for a message from `ipc.callRenderer` defined in the main process and replies back.
+
+Returns a function, that when called, removes the listener.
 
 #### channel
 
