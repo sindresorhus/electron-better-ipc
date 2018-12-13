@@ -29,13 +29,18 @@ ipc.answerMain = (channel, callback) => {
 	const window = electron.remote.getCurrentWindow();
 	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(window.id, channel);
 
-	ipc.on(sendChannel, async (event, data) => {
+	const listener = async (event, data) => {
 		try {
 			ipc.send(dataChannel, await callback(data));
-		} catch (err) {
-			ipc.send(errorChannel, err);
+		} catch (error) {
+			ipc.send(errorChannel, error);
 		}
-	});
+	};
+
+	ipc.on(sendChannel, listener);
+	return () => {
+		ipc.removeListener(sendChannel, listener);
+	};
 };
 
 module.exports = ipc;
