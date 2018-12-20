@@ -22,16 +22,24 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 		reject(error);
 	});
 
-	ipc.send(sendChannel, data);
+	const completeData = {
+		dataChannel,
+		errorChannel,
+		userData: data
+	};
+
+	ipc.send(sendChannel, completeData);
 });
 
 ipc.answerMain = (channel, callback) => {
 	const window = electron.remote.getCurrentWindow();
-	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(window.id, channel);
+	const sendChannel = util.getRendererSendChannel(window.id, channel);
 
 	const listener = async (event, data) => {
+		const {dataChannel, errorChannel, userData} = data;
+
 		try {
-			ipc.send(dataChannel, await callback(data));
+			ipc.send(dataChannel, await callback(userData));
 		} catch (error) {
 			ipc.send(errorChannel, error);
 		}
