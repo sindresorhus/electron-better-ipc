@@ -30,7 +30,7 @@ ipc.callRenderer = (window, channel, data) => new Promise((resolve, reject) => {
 ipc.answerRenderer = (channel, callback) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
 
-	ipc.on(sendChannel, async (event, data) => {
+	const listener = async (event, data) => {
 		const window = BrowserWindow.fromWebContents(event.sender);
 
 		const send = (channel, data) => {
@@ -44,7 +44,12 @@ ipc.answerRenderer = (channel, callback) => {
 		} catch (error) {
 			send(errorChannel, error);
 		}
-	});
+	};
+
+	ipc.on(sendChannel, listener);
+	return () => {
+		ipc.removeListener(sendChannel, listener);
+	};
 };
 
 ipc.sendToRenderers = (channel, data) => {
