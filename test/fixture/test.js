@@ -23,13 +23,19 @@ test('main', async t => {
 		app.client.getRenderProcessLogs()
 	]);
 
-	const logs = [
+	let logs = [
 		...mainLogs,
 		// TODO: We have to clean the message because of:
 		// https://github.com/electron/spectron/issues/283
 		...rendererLogs.map(x => x.message.replace(/[^"]+/, ''))
-	];
-	logs.sort();
+	].sort();
+
+	// More useless cleanup because Spectron sucks
+	logs = logs.filter(x =>
+		!x.startsWith('DevTools listening') &&
+		!/^\[.*:CONSOLE\(\d\)\]/.test(x) &&
+		x !== ''
+	);
 
 	t.deepEqual(logs, [
 		// TODO: The value is missing as Spectron only captures the first argument to `console.log`:

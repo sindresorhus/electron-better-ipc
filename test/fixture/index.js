@@ -2,6 +2,8 @@
 const electron = require('electron');
 const ipc = require('../..');
 
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
+
 ipc.answerRenderer('test', async data => {
 	console.log('test:main:data-from-renderer:', data);
 	return 'test:main:answer';

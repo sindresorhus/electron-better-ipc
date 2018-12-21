@@ -33,11 +33,11 @@
 		"await"
 	],
 	"devDependencies": {
-		"ava": "*",
-		"electron": "^1.8.4",
-		"execa": "^0.10.0",
-		"spectron": "^3.8.0",
-		"xo": "*"
+		"ava": "^1.0.1",
+		"electron": "^4.0.0",
+		"execa": "^1.0.0",
+		"spectron": "^5.0.0",
+		"xo": "^0.23.0"
 	},
 	"xo": {
 		"envs": [
