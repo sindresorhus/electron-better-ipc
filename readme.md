@@ -126,11 +126,7 @@ Send a message to the currently focused window. Returns a Promise for the respon
 
 In the renderer process, use `ipc.answerMain` to reply to this message.
 
-This is a convenience method so you don't have to call:
-
-```js
-	const win = electron.BrowserWindow.getFocusedWindow()
-```
+This is a convenience method so you don't have to pass in `BrowserWindow.getFocusedWindow()` yourself.
 
 #### window
 
