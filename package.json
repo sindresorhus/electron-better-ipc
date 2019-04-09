@@ -33,16 +33,19 @@
 		"await"
 	],
 	"devDependencies": {
-		"ava": "^1.0.1",
-		"electron": "^4.0.0",
+		"ava": "^1.4.1",
+		"electron": "^4.1.4",
 		"execa": "^1.0.0",
 		"spectron": "^5.0.0",
-		"xo": "^0.23.0"
+		"xo": "^0.24.0"
 	},
 	"xo": {
 		"envs": [
 			"node",
 			"browser"
+		],
+		"ignores": [
+			"test/fixture"
 		]
 	}
 }
