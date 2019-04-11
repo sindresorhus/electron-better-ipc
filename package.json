@@ -10,10 +10,11 @@
 		"url": "sindresorhus.com"
 	},
 	"scripts": {
-		"test": "xo && cd test/fixture && ava"
+		"test": "xo && (cd test/fixture && ava) && tsd"
 	},
 	"files": [
 		"index.js",
+		"index.d.ts",
 		"source"
 	],
 	"keywords": [
@@ -37,6 +38,7 @@
 		"electron": "^4.1.4",
 		"execa": "^1.0.0",
 		"spectron": "^5.0.0",
+		"tsd": "^0.7.2",
 		"xo": "^0.24.0"
 	},
 	"xo": {
@@ -47,5 +49,8 @@
 		"ignores": [
 			"test/fixture"
 		]
+	},
+	"dependencies": {
+		"type-fest": "^0.3.1"
 	}
 }

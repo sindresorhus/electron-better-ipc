@@ -96,10 +96,10 @@ ipc.answerMain('get-emoji', async emojiName => {
 const electron = require('electron');
 const ipc = require('electron-better-ipc');
 
-const win = electron.BrowserWindow.getFocusedWindow();
+const window = electron.BrowserWindow.getFocusedWindow();
 
 (async () => {
-	const emoji = await ipc.callRenderer(win, 'get-emoji', 'unicorn');
+	const emoji = await ipc.callRenderer(window, 'get-emoji', 'unicorn');
 	console.log(emoji);
 	//=> '🦄'
 })();
