@@ -22,5 +22,8 @@ electron.app.on('ready', () => {
 		ipc.callRenderer(win, 'test', 'optional-data').then(answer => {
 			console.log('test:main:answer-from-renderer:', answer);
 		});
+		ipc.callFocusedRenderer('test', 'optional-data').then(answer => {
+			console.log('test:main:answer-from-focused-renderer:', answer);
+		});
 	});
 });

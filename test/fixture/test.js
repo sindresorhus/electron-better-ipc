@@ -43,6 +43,7 @@ test('main', async t => {
 		'"test:renderer:answer-from-main:"',
 		'"test:renderer:data-from-main:"',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
-		'test:main:data-from-renderer: optional-data'
+		'test:main:data-from-renderer: optional-data',
+		'test:main:answer-from-focused-renderer: optional-data'
 	]);
 });
