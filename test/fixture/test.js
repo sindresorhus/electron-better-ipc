@@ -37,13 +37,14 @@ test('main', async t => {
 		x !== ''
 	);
 
+	console.log('logs:', logs);
+
 	t.deepEqual(logs, [
 		// TODO: The value is missing as Spectron only captures the first argument to `console.log`:
 		// https://github.com/electron/spectron/issues/282
 		'"test:renderer:answer-from-main:"',
 		'"test:renderer:data-from-main:"',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
-		'test:main:data-from-renderer: optional-data',
-		'test:main:answer-from-focused-renderer: optional-data'
+		'test:main:data-from-renderer: optional-data'
 	]);
 });

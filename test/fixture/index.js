@@ -19,11 +19,17 @@ electron.app.on('ready', () => {
 	const win = load(`file://${__dirname}/index.html`);
 
 	win.webContents.on('did-finish-load', () => {
-		ipc.callRenderer(win, 'test', 'optional-data').then(answer => {
+		/*ipc.callRenderer(win, 'test', 'optional-data').then(answer => {
 			console.log('test:main:answer-from-renderer:', answer);
-		});
-		ipc.callFocusedRenderer('test', 'optional-data').then(answer => {
-			console.log('test:main:answer-from-focused-renderer:', answer);
-		});
+		});*/
 	});
+	win.focus();
+
+	win.on('focus', () => {
+		// this runs
+		ipc.callRenderer(win, 'test', 'optional-data').then(answer => {
+			// this does not
+			console.log('test:main:answer-from-renderer:', answer);
+		})
+	})
 });
