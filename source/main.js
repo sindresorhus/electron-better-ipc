@@ -2,7 +2,8 @@
 const electron = require('electron');
 const util = require('./util');
 
-const {ipcMain: ipc, BrowserWindow} = electron;
+const {ipcMain, BrowserWindow} = electron;
+const ipc = Object.create(ipcMain);
 
 ipc.callRenderer = (window, channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(window.id, channel);

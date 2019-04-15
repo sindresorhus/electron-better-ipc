@@ -57,7 +57,7 @@ As you can see below, this module makes it much simpler to handle the communicat
 ###### Main
 
 ```js
-const ipc = require('electron-better-ipc');
+const {ipcMain: ipc} = require('electron-better-ipc');
 
 ipc.answerRenderer('get-emoji', async emojiName => {
 	const emoji = await getEmoji(emojiName);
@@ -68,7 +68,7 @@ ipc.answerRenderer('get-emoji', async emojiName => {
 ###### Renderer
 
 ```js
-const ipc = require('electron-better-ipc');
+const {ipcRenderer: ipc} = require('electron-better-ipc');
 
 (async () => {
 	const emoji = await ipc.callMain('get-emoji', 'unicorn');
@@ -82,7 +82,7 @@ Here we do the inverse of the above, we get an emoji by name in the main process
 ###### Renderer
 
 ```js
-const ipc = require('electron-better-ipc');
+const {ipcRenderer: ipc} = require('electron-better-ipc');
 
 ipc.answerMain('get-emoji', async emojiName => {
 	const emoji = await getEmoji(emojiName);
@@ -94,7 +94,7 @@ ipc.answerMain('get-emoji', async emojiName => {
 
 ```js
 const electron = require('electron');
-const ipc = require('electron-better-ipc');
+const {ipcMain: ipc} = require('electron-better-ipc');
 
 const window = electron.BrowserWindow.getFocusedWindow();
 
@@ -108,17 +108,15 @@ const window = electron.BrowserWindow.getFocusedWindow();
 
 ## API
 
-The export is just the built-in `ipc` module with some added methods, so you can use it as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
-
-The API is different in the main and renderer process.
+The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in `ipc` module with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
 
 ## Main process
 
-### ipc.callRenderer(window, channel, [data])
+### ipcMain.callRenderer(window, channel, [data])
 
 Send a message to the given window. Returns a Promise for the response.
 
-In the renderer process, use `ipc.answerMain` to reply to this message.
+In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
 
 #### window
 
@@ -138,9 +136,9 @@ Type: `any`
 
 Data to send to the receiver.
 
-### ipc.answerRenderer(channel, callback)
+### ipcMain.answerRenderer(channel, callback)
 
-This method listens for a message from `ipc.callMain` defined in a renderer process and replies back.
+This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
 
 Returns a function, that when called, removes the listener.
 
@@ -154,9 +152,9 @@ The channel to send the message on.
 
 Type: `Function` `AsyncFunction`
 
-The return value is sent back to the `ipc.callMain` in the renderer process.
+The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
 
-### ipc.sendToRenderers(channel, [data])
+### ipcMain.sendToRenderers(channel, [data])
 
 Send a message to all renderer processes (windows).
 
@@ -174,11 +172,11 @@ Data to send to the receiver.
 
 ## Renderer process
 
-### ipc.callMain(channel, [data])
+### ipcRenderer.callMain(channel, [data])
 
 Send a message to the main process. Returns a Promise for the response.
 
-In the main process, use `ipc.answerRenderer` to reply to this message.
+In the main process, use `ipcMain.answerRenderer` to reply to this message.
 
 #### channel
 
@@ -192,9 +190,9 @@ Type: `any`
 
 Data to send to the receiver.
 
-### ipc.answerMain(channel, callback)
+### ipcRenderer.answerMain(channel, callback)
 
-This method listens for a message from `ipc.callRenderer` defined in the main process and replies back.
+This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
 
 Returns a function, that when called, removes the listener.
 
@@ -208,7 +206,7 @@ The channel to send the message on.
 
 Type: `Function` `AsyncFunction`
 
-The return value is sent back to the `ipc.callRenderer` in the main process.
+The return value is sent back to the `ipcMain.callRenderer` in the main process.
 
 
 ## Related

@@ -1,5 +1,5 @@
 'use strict';
-const ipc = require('../..');
+const {ipcRenderer: ipc} = require('../..');
 
 ipc.callMain('test', 'optional-data').then(answer => {
 	console.log('test:renderer:answer-from-main:', answer);

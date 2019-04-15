@@ -1,55 +1,55 @@
 /// <reference lib="dom"/>
 import {expectType, expectError} from 'tsd';
-import {JsonValue} from 'type-fest';
 import {BrowserWindow} from 'electron';
-import * as betterIpc from '.';
+import {ipcMain, ipcRenderer} from '.';
 
-const mainProcessIpc: betterIpc.MainProcessIpc = betterIpc;
 const window = BrowserWindow.getFocusedWindow();
 
-expectType<Promise<JsonValue>>(
-	mainProcessIpc.callRenderer(window!, 'get-emoji')
+// ipcMain
+
+expectType<Promise<unknown>>(
+	ipcMain.callRenderer(window!, 'get-emoji')
 );
-expectType<Promise<JsonValue>>(
-	mainProcessIpc.callRenderer(window!, 'get-emoji', 'unicorn')
+expectType<Promise<unknown>>(
+	ipcMain.callRenderer(window!, 'get-emoji', 'unicorn')
 );
 
-const detachListener = mainProcessIpc.answerRenderer('get-emoji', emojiName => {
-	expectType<JsonValue | undefined>(emojiName);
+const detachListener = ipcMain.answerRenderer('get-emoji', emojiName => {
+	expectType<unknown>(emojiName);
 	return '🦄';
 });
-mainProcessIpc.answerRenderer('get-emoji', async emojiName => {
-	expectType<JsonValue | undefined>(emojiName);
+ipcMain.answerRenderer('get-emoji', async emojiName => {
+	expectType<unknown>(emojiName);
 	return '🦄';
 });
 
 expectType<() => void>(detachListener);
 detachListener();
 
-mainProcessIpc.sendToRenderers('get-emoji');
-mainProcessIpc.sendToRenderers('get-emoji', '🦄');
+ipcMain.sendToRenderers('get-emoji');
+ipcMain.sendToRenderers('get-emoji', '🦄');
 
-expectError(mainProcessIpc.callMain);
+expectError(ipcMain.callMain);
 
-const rendererProcessIpc: betterIpc.RendererProcessIpc = betterIpc;
+// ipcRenderer
 
-expectType<Promise<JsonValue>>(
-	rendererProcessIpc.callMain('get-emoji', 'unicorn')
+expectType<Promise<unknown>>(
+	ipcRenderer.callMain('get-emoji', 'unicorn')
 );
 
-const detachListener2 = rendererProcessIpc.answerMain(
+const detachListener2 = ipcRenderer.answerMain(
 	'get-emoji',
 	async emojiName => {
-		expectType<JsonValue | undefined>(emojiName);
+		expectType<unknown>(emojiName);
 		return '🦄';
 	}
 );
-rendererProcessIpc.answerMain('get-emoji', emojiName => {
-	expectType<JsonValue | undefined>(emojiName);
+ipcRenderer.answerMain('get-emoji', emojiName => {
+	expectType<unknown>(emojiName);
 	return '🦄';
 });
 
 expectType<() => void>(detachListener2);
 detachListener();
 
-expectError(rendererProcessIpc.callRenderer);
+expectError(ipcRenderer.callRenderer);

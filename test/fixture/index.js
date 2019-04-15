@@ -1,6 +1,6 @@
 'use strict';
 const electron = require('electron');
-const ipc = require('../..');
+const {ipcMain: ipc} = require('../..');
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
 
