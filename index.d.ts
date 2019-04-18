@@ -7,7 +7,7 @@ export interface MainProcessIpc extends IpcMain {
 
 	In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
 
-	@param window - The window to send the message to.
+	@param browserWindow - The window to send the message to.
 	@param channel - The channel to send the message on.
 	@param data - Data to send to the receiver.
 
@@ -16,17 +16,17 @@ export interface MainProcessIpc extends IpcMain {
 	import {BrowserWindow} from 'electron';
 	import {ipcMain as ipc} from 'electron-better-ipc';
 
-	const window = BrowserWindow.getFocusedWindow();
+	const browserWindow = BrowserWindow.getFocusedWindow();
 
 	(async () => {
-		const emoji = await ipc.callRenderer(window!, 'get-emoji', 'unicorn');
+		const emoji = await ipc.callRenderer(browserWindow!, 'get-emoji', 'unicorn');
 		console.log(emoji);
 		//=> '🦄'
 	})();
 	```
 	*/
 	callRenderer(
-		window: BrowserWindow,
+		browserWindow: BrowserWindow,
 		channel: string,
 		data?: JsonValue
 	): Promise<unknown>;
@@ -52,7 +52,7 @@ export interface MainProcessIpc extends IpcMain {
 		channel: string,
 		callback: (
 			data: unknown,
-			window: BrowserView
+			browserWindow: BrowserView
 		) => JsonValue | PromiseLike<JsonValue>
 	): () => void;
 

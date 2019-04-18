@@ -33,8 +33,8 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 });
 
 ipc.answerMain = (channel, callback) => {
-	const window = electron.remote.getCurrentWindow();
-	const sendChannel = util.getRendererSendChannel(window.id, channel);
+	const browserWindow = electron.remote.getCurrentWindow();
+	const sendChannel = util.getRendererSendChannel(browserWindow.id, channel);
 
 	const listener = async (event, data) => {
 		const {dataChannel, errorChannel, userData} = data;

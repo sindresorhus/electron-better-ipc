@@ -96,10 +96,10 @@ ipc.answerMain('get-emoji', async emojiName => {
 const electron = require('electron');
 const {ipcMain: ipc} = require('electron-better-ipc');
 
-const window = electron.BrowserWindow.getFocusedWindow();
+const browserWindow = electron.BrowserWindow.getFocusedWindow();
 
 (async () => {
-	const emoji = await ipc.callRenderer(window, 'get-emoji', 'unicorn');
+	const emoji = await ipc.callRenderer(browserWindow, 'get-emoji', 'unicorn');
 	console.log(emoji);
 	//=> '🦄'
 })();
@@ -112,13 +112,13 @@ The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-i
 
 ## Main process
 
-### ipcMain.callRenderer(window, channel, [data])
+### ipcMain.callRenderer(browserWindow, channel, [data])
 
-Send a message to the given window. Returns a Promise for the response.
+Send a message to the given window. Returns a `Promise` for the response.
 
 In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
 
-#### window
+#### browserWindow
 
 Type: `BrowserWindow`
 
@@ -148,7 +148,7 @@ Type: `string`
 
 The channel to send the message on.
 
-#### callback([data], window)
+#### callback([data], browserWindow)
 
 Type: `Function` `AsyncFunction`
 

@@ -3,15 +3,15 @@ import {expectType, expectError} from 'tsd';
 import {BrowserWindow} from 'electron';
 import {ipcMain, ipcRenderer} from '.';
 
-const window = BrowserWindow.getFocusedWindow();
+const browserWindow = BrowserWindow.getFocusedWindow();
 
 // ipcMain
 
 expectType<Promise<unknown>>(
-	ipcMain.callRenderer(window!, 'get-emoji')
+	ipcMain.callRenderer(browserWindow!, 'get-emoji')
 );
 expectType<Promise<unknown>>(
-	ipcMain.callRenderer(window!, 'get-emoji', 'unicorn')
+	ipcMain.callRenderer(browserWindow!, 'get-emoji', 'unicorn')
 );
 
 const detachListener = ipcMain.answerRenderer('get-emoji', emojiName => {
