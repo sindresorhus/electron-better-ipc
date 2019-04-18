@@ -33,6 +33,9 @@
 		"async",
 		"await"
 	],
+	"dependencies": {
+		"type-fest": "^0.3.1"
+	},
 	"devDependencies": {
 		"ava": "^1.4.1",
 		"electron": "^4.1.4",
@@ -49,8 +52,5 @@
 		"ignores": [
 			"test/fixture"
 		]
-	},
-	"dependencies": {
-		"type-fest": "^0.3.1"
 	}
 }
