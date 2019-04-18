@@ -1,2 +1,7 @@
 'use strict';
-module.exports = require(process.type === 'renderer' ? './source/renderer' : './source/main');
+
+if (process.type === 'renderer') {
+	module.exports.ipcRenderer = require('./source/renderer');
+} else {
+	module.exports.ipcMain = require('./source/main');
+}

@@ -2,10 +2,11 @@
 const electron = require('electron');
 const util = require('./util');
 
-const {ipcMain: ipc, BrowserWindow} = electron;
+const {ipcMain, BrowserWindow} = electron;
+const ipc = Object.create(ipcMain);
 
-ipc.callRenderer = (window, channel, data) => new Promise((resolve, reject) => {
-	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(window.id, channel);
+ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, reject) => {
+	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(browserWindow.id, channel);
 
 	const cleanup = () => {
 		ipc.removeAllListeners(dataChannel);
@@ -28,8 +29,8 @@ ipc.callRenderer = (window, channel, data) => new Promise((resolve, reject) => {
 		userData: data
 	};
 
-	if (window.webContents) {
-		window.webContents.send(sendChannel, completeData);
+	if (browserWindow.webContents) {
+		browserWindow.webContents.send(sendChannel, completeData);
 	}
 });
 
@@ -37,10 +38,10 @@ ipc.answerRenderer = (channel, callback) => {
 	const sendChannel = util.getSendChannel(channel);
 
 	const listener = async (event, data) => {
-		const window = BrowserWindow.fromWebContents(event.sender);
+		const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
 		const send = (channel, data) => {
-			if (!(window && window.isDestroyed())) {
+			if (!(browserWindow && browserWindow.isDestroyed())) {
 				event.sender.send(channel, data);
 			}
 		};
@@ -48,7 +49,7 @@ ipc.answerRenderer = (channel, callback) => {
 		const {dataChannel, errorChannel, userData} = data;
 
 		try {
-			send(dataChannel, await callback(userData, window));
+			send(dataChannel, await callback(userData, browserWindow));
 		} catch (error) {
 			send(errorChannel, error);
 		}
@@ -61,9 +62,9 @@ ipc.answerRenderer = (channel, callback) => {
 };
 
 ipc.sendToRenderers = (channel, data) => {
-	for (const window of BrowserWindow.getAllWindows()) {
-		if (window.webContents) {
-			window.webContents.send(channel, data);
+	for (const browserWindow of BrowserWindow.getAllWindows()) {
+		if (browserWindow.webContents) {
+			browserWindow.webContents.send(channel, data);
 		}
 	}
 };

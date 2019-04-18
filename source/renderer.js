@@ -2,7 +2,8 @@
 const electron = require('electron');
 const util = require('./util');
 
-const {ipcRenderer: ipc} = electron;
+const {ipcRenderer} = electron;
+const ipc = Object.create(ipcRenderer);
 
 ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
@@ -32,8 +33,8 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 });
 
 ipc.answerMain = (channel, callback) => {
-	const window = electron.remote.getCurrentWindow();
-	const sendChannel = util.getRendererSendChannel(window.id, channel);
+	const browserWindow = electron.remote.getCurrentWindow();
+	const sendChannel = util.getRendererSendChannel(browserWindow.id, channel);
 
 	const listener = async (event, data) => {
 		const {dataChannel, errorChannel, userData} = data;
