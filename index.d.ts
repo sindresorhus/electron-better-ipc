@@ -9,7 +9,8 @@ export interface MainProcessIpc extends IpcMain {
 
 	@param browserWindow - The window to send the message to.
 	@param channel - The channel to send the message on.
-	@param data - Data to send to the receiver.
+	@param data - The data to send to the receiver.
+	@returns - The reply from the renderer process.
 
 	@example
 	```
@@ -60,19 +61,20 @@ export interface MainProcessIpc extends IpcMain {
 	Send a message to all renderer processes (windows).
 
 	@param channel - The channel to send the message on.
-	@param data - Data to send to the receiver.
+	@param data - The data to send to the receiver.
 	*/
 	sendToRenderers(channel: string, data?: JsonValue): void;
 }
 
 export interface RendererProcessIpc extends IpcRenderer {
 	/**
-	Send a message to the main process. Returns a Promise for the response.
+	Send a message to the main process.
 
 	In the main process, use `ipcMain.answerRenderer` to reply to this message.
 
 	@param channel - The channel to send the message on.
-	@param data - Data to send to the receiver.
+	@param data - The data to send to the receiver.
+	@returns The reply from the main process.
 
 	@example
 	```
