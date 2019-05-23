@@ -1,5 +1,6 @@
 'use strict';
-const electron = require('electron');
+const path = require('path');
+const {app, BrowserWindow} = require('electron');
 const {ipcMain: ipc} = require('../..');
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
@@ -9,18 +10,14 @@ ipc.answerRenderer('test', async data => {
 	return 'test:main:answer';
 });
 
-function load(url) {
-	const win = new electron.BrowserWindow();
-	win.loadURL(url);
-	return win;
-}
+let mainWindow;
 
-electron.app.on('ready', () => {
-	const win = load(`file://${__dirname}/index.html`);
+(async () => {
+	await app.whenReady();
 
-	win.webContents.on('did-finish-load', () => {
-		ipc.callRenderer(win, 'test', 'optional-data').then(answer => {
-			console.log('test:main:answer-from-renderer:', answer);
-		});
-	});
-});
+	mainWindow = new BrowserWindow();
+	await mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+	const answer = await ipc.callRenderer(win, 'test', 'optional-data');
+	console.log('test:main:answer-from-renderer:', answer);
+})();

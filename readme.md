@@ -13,11 +13,7 @@ You can use this module directly in both the main and renderer process.
 $ npm install electron-better-ipc
 ```
 
-*Requires Electron 4 or later.*
-
-<a href="https://www.patreon.com/sindresorhus">
-	<img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
-</a>
+*Requires Electron 5 or later.*
 
 
 ## Usage
@@ -222,8 +218,3 @@ The return value is sent back to the `ipcMain.callRenderer` in the main process.
 - [electron-unhandled](https://github.com/sindresorhus/electron-unhandled) - Catch unhandled errors and promise rejections in your Electron app
 - [electron-context-menu](https://github.com/sindresorhus/electron-context-menu) - Context menu for your Electron app
 - [electron-dl](https://github.com/sindresorhus/electron-dl) - Simplified file downloads for your Electron app
-
-
-## License
-
-MIT © [Sindre Sorhus](https://sindresorhus.com)
