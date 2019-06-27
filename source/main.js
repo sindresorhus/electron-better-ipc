@@ -7,21 +7,24 @@ const ipc = Object.create(ipcMain);
 
 ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(browserWindow.id, channel);
-
+	
 	const cleanup = () => {
-		ipc.removeAllListeners(dataChannel);
-		ipc.removeAllListeners(errorChannel);
+		ipc.off(dataChannel, onData);
+		ipc.off(errorChannel, onError);
 	};
-
-	ipc.on(dataChannel, (event, result) => {
+	
+	const onData = (event, result) => {
 		cleanup();
 		resolve(result);
-	});
-
-	ipc.on(errorChannel, (event, error) => {
+	};
+	
+	const onError = (event, error) => {
 		cleanup();
 		reject(error);
-	});
+	};
+
+	ipc.once(dataChannel, (event, result) => onData(event, result));
+	ipc.once(errorChannel, (event, error) => onError(event, error));
 
 	const completeData = {
 		dataChannel,
@@ -57,7 +60,7 @@ ipc.answerRenderer = (channel, callback) => {
 
 	ipc.on(sendChannel, listener);
 	return () => {
-		ipc.removeListener(sendChannel, listener);
+		ipc.off(sendChannel, listener);
 	};
 };
 
