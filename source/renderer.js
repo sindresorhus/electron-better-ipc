@@ -7,17 +7,14 @@ const ipc = Object.create(ipcRenderer);
 
 ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
-
 	const cleanup = () => {
 		ipc.off(dataChannel, onData);
 		ipc.off(errorChannel, onError);
 	};
-
 	const onData = (event, result) => {
 		cleanup();
 		resolve(result);
 	};
-	
 	const onError = (event, error) => {
 		cleanup();
 		reject(error);
