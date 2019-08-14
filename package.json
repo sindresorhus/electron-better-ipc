@@ -35,13 +35,13 @@
 		"await"
 	],
 	"dependencies": {
-		"type-fest": "^0.5.1"
+		"type-fest": "^0.7.1"
 	},
 	"devDependencies": {
-		"ava": "^1.4.1",
-		"electron": "^5.0.2",
-		"execa": "^1.0.0",
-		"spectron": "^5.0.0",
+		"ava": "^2.2.0",
+		"electron": "^6.0.2",
+		"execa": "^2.0.3",
+		"spectron": "^8.0.0",
 		"tsd": "^0.7.3",
 		"xo": "^0.24.0"
 	},

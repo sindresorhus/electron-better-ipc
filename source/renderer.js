@@ -23,8 +23,13 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 		reject(error);
 	};
 
-	ipc.once(dataChannel, (event, result) => onData(event, result));
-	ipc.once(errorChannel, (event, error) => onError(event, error));
+	ipc.once(dataChannel, (event, result) => {
+		onData(event, result);
+	});
+
+	ipc.once(errorChannel, (event, error) => {
+		onError(event, error);
+	});
 
 	const completeData = {
 		dataChannel,
@@ -50,6 +55,7 @@ ipc.answerMain = (channel, callback) => {
 	};
 
 	ipc.on(sendChannel, listener);
+
 	return () => {
 		ipc.off(sendChannel, listener);
 	};
