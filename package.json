@@ -1,6 +1,6 @@
 {
 	"name": "electron-better-ipc",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Simplified IPC communication for Electron apps",
 	"license": "MIT",
 	"repository": "sindresorhus/electron-better-ipc",
