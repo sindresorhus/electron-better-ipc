@@ -1,4 +1,3 @@
-import {JsonValue} from 'type-fest';
 import {BrowserWindow, BrowserView, IpcMain, IpcRenderer} from 'electron';
 
 export interface MainProcessIpc extends IpcMain {
@@ -26,10 +25,10 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callRenderer(
+	callRenderer<T>(
 		browserWindow: BrowserWindow,
 		channel: string,
-		data?: JsonValue
+		data?: T
 	): Promise<unknown>;
 
 	/**
@@ -49,12 +48,12 @@ export interface MainProcessIpc extends IpcMain {
 	});
 	```
 	*/
-	answerRenderer(
+	answerRenderer<T>(
 		channel: string,
 		callback: (
 			data: unknown,
 			browserWindow: BrowserView
-		) => JsonValue | PromiseLike<JsonValue>
+		) => T | PromiseLike<T>
 	): () => void;
 
 	/**
@@ -63,7 +62,7 @@ export interface MainProcessIpc extends IpcMain {
 	@param channel - The channel to send the message on.
 	@param data - The data to send to the receiver.
 	*/
-	sendToRenderers(channel: string, data?: JsonValue): void;
+	sendToRenderers<T>(channel: string, data?: T): void;
 }
 
 export interface RendererProcessIpc extends IpcRenderer {
@@ -87,7 +86,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	})();
 	```
 	*/
-	callMain(channel: string, data?: JsonValue): Promise<unknown>;
+	callMain<T>(channel: string, data?: T): Promise<unknown>;
 
 	/**
 	This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
@@ -106,9 +105,9 @@ export interface RendererProcessIpc extends IpcRenderer {
 	});
 	```
 	*/
-	answerMain(
+	answerMain<T>(
 		channel: string,
-		callback: (data?: unknown) => JsonValue | PromiseLike<JsonValue>
+		callback: (data?: unknown) => T | PromiseLike<T>
 	): () => void;
 }
 
