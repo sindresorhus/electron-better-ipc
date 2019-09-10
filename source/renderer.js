@@ -3,7 +3,7 @@ const electron = require('electron');
 const util = require('./util');
 
 const {ipcRenderer} = electron;
-const ipc = Object.create(ipcRenderer);
+const ipc = Object.create(ipcRenderer || {});
 
 ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
