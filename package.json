@@ -34,9 +34,6 @@
 		"async",
 		"await"
 	],
-	"dependencies": {
-		"type-fest": "^0.7.1"
-	},
 	"devDependencies": {
 		"ava": "^2.2.0",
 		"electron": "^6.0.2",
