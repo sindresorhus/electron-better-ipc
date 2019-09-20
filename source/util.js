@@ -25,3 +25,14 @@ module.exports.getRendererResponseChannels = (windowId, channel) => {
 		errorChannel: `%better-ipc-response-error-channel-${windowId}-${channel}-${id}`
 	};
 };
+
+module.exports.deserializeError = (error) => {
+	if (typeof error === 'object' && !(error instanceof Array)) {
+		const err = new Error()
+		err.message = error.message
+		err.stack = error.stack
+		err.name = error.name
+		return err
+	}
+	return new Error('unknown')
+}

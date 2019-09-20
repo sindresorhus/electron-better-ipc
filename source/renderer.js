@@ -29,7 +29,7 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 	});
 
 	ipc.once(errorChannel, (event, error) => {
-		onError(event, error);
+		onError(event, util.deserializeError(error));
 	});
 
 	const completeData = {

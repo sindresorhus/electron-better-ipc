@@ -29,7 +29,7 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	});
 
 	ipc.once(errorChannel, (event, error) => {
-		onError(event, error);
+		onError(event, util.deserializeError(error));
 	});
 
 	const completeData = {
