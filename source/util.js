@@ -27,12 +27,13 @@ module.exports.getRendererResponseChannels = (windowId, channel) => {
 };
 
 module.exports.deserializeError = (error) => {
-	if (typeof error === 'object' && !(error instanceof Array)) {
-		const err = new Error()
-		err.message = error.message
-		err.stack = error.stack
-		err.name = error.name
-		return err
+	if (typeof error === 'object' && !Array.isArray(error)) {
+		const err = new Error();
+		err.message = error.message;
+		err.stack = error.stack;
+		err.name = error.name;
+		return err;
 	}
-	return new Error('unknown')
-}
+
+	return new Error('unknown');
+};
