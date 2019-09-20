@@ -26,7 +26,7 @@ module.exports.getRendererResponseChannels = (windowId, channel) => {
 	};
 };
 
-module.exports.deserializeError = (error) => {
+module.exports.deserializeError = error => {
 	if (typeof error === 'object' && !Array.isArray(error)) {
 		const err = new Error();
 		err.message = error.message;
