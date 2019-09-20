@@ -1,5 +1,6 @@
 'use strict';
 const electron = require('electron');
+const serializeError = require('serialize-error');
 const util = require('./util');
 
 const {ipcRenderer} = electron;
@@ -50,7 +51,7 @@ ipc.answerMain = (channel, callback) => {
 		try {
 			ipc.send(dataChannel, await callback(userData));
 		} catch (error) {
-			ipc.send(errorChannel, error);
+			ipc.send(errorChannel, serializeError(error));
 		}
 	};
 

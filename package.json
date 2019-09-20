@@ -50,5 +50,8 @@
 		"ignores": [
 			"test/fixture"
 		]
+	},
+	"dependencies": {
+		"serialize-error": "^4.1.0"
 	}
 }
