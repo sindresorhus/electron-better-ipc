@@ -52,6 +52,6 @@
 		]
 	},
 	"dependencies": {
-		"serialize-error": "^4.1.0"
+		"serialize-error": "^5.0.0"
 	}
 }
