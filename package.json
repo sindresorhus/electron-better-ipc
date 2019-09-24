@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"test": "xo && tsd",
-		"// disabled until spectron is updated // test": "xo && (cd test/fixture && ava) && tsd"
+		"test-with-spectron": "xo && (cd test/fixture && ava) && tsd"
 	},
 	"files": [
 		"index.js",

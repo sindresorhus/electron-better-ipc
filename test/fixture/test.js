@@ -5,12 +5,12 @@ import {Application} from 'spectron';
 test.beforeEach(async t => {
 	t.context.app = new Application({
 		path: electron,
-		args: ['.']
+		args:  ['.']
 	});
 });
 
-test.afterEach.always(async t => {
-	await t.context.app.stop();
+test.afterEach(t => {
+	return t.context.app.stop();
 });
 
 test('main', async t => {
@@ -33,15 +33,22 @@ test('main', async t => {
 	// More useless cleanup because Spectron sucks
 	logs = logs.filter(x =>
 		!x.startsWith('DevTools listening') &&
-		!/^\[.*:CONSOLE\(\d\)\]/.test(x) &&
-		x !== ''
+		!x.includes(':CONSOLE(') &&
+		// can not match like this one: [79915:0924/100744.171411:INFO:CONSOLE(14)]
+		// !/^\[.*:CONSOLE\(\d\)\]/.test(x) &&
+		x !== '' &&
+		x !== 'Please protect ports used by ChromeDriver and related test frameworks to prevent access by malicious code.'
 	);
+
+	console.log(logs);
 
 	t.deepEqual(logs, [
 		// TODO: The value is missing as Spectron only captures the first argument to `console.log`:
 		// https://github.com/electron/spectron/issues/282
-		'"test:renderer:answer-from-main:"',
-		'"test:renderer:data-from-main:"',
+		'"test-error:renderer:from-main:error-message" "test-error:main:answer"',
+		'"test-error:renderer:from-main:is-error" true',
+		'"test:renderer:answer-from-main:" "test:main:answer"',
+		'"test:renderer:data-from-main:" "optional-data"',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
 		'test:main:data-from-renderer: optional-data'
 	]);
