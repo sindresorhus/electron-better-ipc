@@ -25,4 +25,3 @@ module.exports.getRendererResponseChannels = (windowId, channel) => {
 		errorChannel: `%better-ipc-response-error-channel-${windowId}-${channel}-${id}`
 	};
 };
-
