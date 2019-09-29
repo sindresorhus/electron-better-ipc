@@ -5,7 +5,7 @@ import {Application} from 'spectron';
 test.beforeEach(async t => {
 	t.context.app = new Application({
 		path: electron,
-		args:  ['.']
+		args: ['.']
 	});
 });
 
@@ -34,7 +34,7 @@ test('main', async t => {
 	logs = logs.filter(x =>
 		!x.startsWith('DevTools listening') &&
 		!x.includes(':CONSOLE(') &&
-		// can not match like this one: [79915:0924/100744.171411:INFO:CONSOLE(14)]
+		// Cannot match like this one: [79915:0924/100744.171411:INFO:CONSOLE(14)]
 		// !/^\[.*:CONSOLE\(\d\)\]/.test(x) &&
 		x !== '' &&
 		x !== 'Please protect ports used by ChromeDriver and related test frameworks to prevent access by malicious code.'
