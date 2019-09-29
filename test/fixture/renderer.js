@@ -10,8 +10,7 @@ ipc.answerMain('test', data => {
 	return 'test:renderer:answer-data';
 });
 
-ipc.callMain('test-error').catch(err => {
-	console.log('test-error:renderer:from-main:is-error', err instanceof Error);
-	console.log('test-error:renderer:from-main:error-message', err.message);
+ipc.callMain('test-error').catch(error => {
+	console.log('test-error:renderer:from-main:is-error', error instanceof Error);
+	console.log('test-error:renderer:from-main:error-message', error.message);
 });
-
