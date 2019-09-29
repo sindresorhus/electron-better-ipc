@@ -20,10 +20,10 @@ let mainWindow;
 	await app.whenReady();
 
 	mainWindow = new BrowserWindow({
-		// why? see below:
+		// Why? See below:
 		// https://github.com/electron-userland/spectron/issues/174#issuecomment-525540776
 		webPreferences: {
-			nodeIntegration: true,
+			nodeIntegration: true
 		}
 	});
 	await mainWindow.loadFile(path.join(__dirname, 'index.html'));
