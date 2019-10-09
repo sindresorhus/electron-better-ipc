@@ -25,11 +25,11 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callRenderer<T>(
+	callRenderer<T, S>(
 		browserWindow: BrowserWindow,
 		channel: string,
 		data?: T
-	): Promise<unknown>;
+	): Promise<S>;
 
 	/**
 	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
@@ -48,12 +48,12 @@ export interface MainProcessIpc extends IpcMain {
 	});
 	```
 	*/
-	answerRenderer<T>(
+	answerRenderer<T, S>(
 		channel: string,
 		callback: (
-			data: unknown,
+			data: T,
 			browserWindow: BrowserView
-		) => T | PromiseLike<T>
+		) => S | PromiseLike<S>
 	): () => void;
 
 	/**
@@ -86,7 +86,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	})();
 	```
 	*/
-	callMain<T>(channel: string, data?: T): Promise<unknown>;
+	callMain<T, S>(channel: string, data?: T): Promise<S>;
 
 	/**
 	This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
@@ -105,9 +105,9 @@ export interface RendererProcessIpc extends IpcRenderer {
 	});
 	```
 	*/
-	answerMain<T>(
+	answerMain<T, S>(
 		channel: string,
-		callback: (data?: unknown) => T | PromiseLike<T>
+		callback: (data?: T) => S | PromiseLike<S>
 	): () => void;
 }
 
