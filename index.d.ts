@@ -32,6 +32,31 @@ export interface MainProcessIpc extends IpcMain {
 	): Promise<unknown>;
 
 	/**
+	Send a message to the focused window, as determined by `electron.BrowserWindow.getFocusedWindow`.
+
+	In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
+
+	@param channel - The channel to send the message on.
+	@param data - The data to send to the receiver.
+	@returns - The reply from the renderer process.
+
+	@example
+	```
+	import {ipcMain as ipc} from 'electron-better-ipc';
+
+	(async () => {
+		const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn');
+		console.log(emoji);
+		//=> '🦄'
+	})();
+	```
+	*/
+	callFocusedRenderer<T>(
+		channel: string,
+		data?: T
+	): Promise<unknown>;
+
+	/**
 	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
 
 	@param channel - The channel to send the message on.

@@ -10,6 +10,11 @@ ipc.answerRenderer('test', async data => {
 	return 'test:main:answer';
 });
 
+ipc.answerRenderer('test-focused', async data => {
+	console.log('test-focused:main:data-from-renderer:', data);
+	return 'test-focused:main:answer';
+});
+
 ipc.answerRenderer('test-error', async () => {
 	throw new Error('test-error:main:answer');
 });
@@ -30,4 +35,7 @@ let mainWindow;
 
 	const answer = await ipc.callRenderer(mainWindow, 'test', 'optional-data');
 	console.log('test:main:answer-from-renderer:', answer);
+
+	const answerFromFocusedRenderer = await ipc.callFocusedRenderer('test-focused', 'optional-data');
+	console.log('test-focused:main:answer-from-renderer', answerFromFocusedRenderer);
 })();

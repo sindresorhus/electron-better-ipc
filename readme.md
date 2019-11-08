@@ -89,18 +89,14 @@ ipc.answerMain('get-emoji', async emojiName => {
 ###### Main
 
 ```js
-const electron = require('electron');
 const {ipcMain: ipc} = require('electron-better-ipc');
 
-const browserWindow = electron.BrowserWindow.getFocusedWindow();
-
 (async () => {
-	const emoji = await ipc.callRenderer(browserWindow, 'get-emoji', 'unicorn');
+	const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn');
 	console.log(emoji);
 	//=> '🦄'
 })();
 ```
-
 
 ## API
 
@@ -121,6 +117,26 @@ Returns a `Promise<unknown>` with the reply from the renderer process..
 Type: `BrowserWindow`
 
 The window to send the message to.
+
+#### channel
+
+Type: `string`
+
+The channel to send the message on.
+
+#### data
+
+Type: `unknown`
+
+The data to send to the receiver.
+
+### ipcMain.callFocusedRenderer(channel, [data])
+
+Send a message to the focused window, as determined by `electron.BrowserWindow.getFocusedWindow`.
+
+In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
+
+Returns a `Promise<unknown>` with the reply from the renderer process.
 
 #### channel
 

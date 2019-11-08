@@ -14,3 +14,12 @@ ipc.callMain('test-error').catch(error => {
 	console.log('test-error:renderer:from-main:is-error', error instanceof Error);
 	console.log('test-error:renderer:from-main:error-message', error.message);
 });
+
+ipc.callMain('test-focused', 'optional-data').then(answer => {
+	console.log('test-focused:renderer:answer-from-main:', answer);
+})
+
+ipc.answerMain('test-focused', data => {
+	console.log('test-focused:renderer:data-from-main:', data);
+	return 'test-focused:renderer:answer-data';
+});
