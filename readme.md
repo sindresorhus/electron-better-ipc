@@ -110,7 +110,7 @@ Send a message to the given window.
 
 In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
 
-Returns a `Promise<unknown>` with the reply from the renderer process..
+Returns a `Promise<unknown>` with the reply from the renderer process.
 
 #### browserWindow
 
