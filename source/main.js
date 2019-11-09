@@ -43,6 +43,8 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	}
 });
 
+ipc.callFocusedRenderer = (...args) => ipc.callRenderer(BrowserWindow.getFocusedWindow(), ...args);
+
 ipc.answerRenderer = (channel, callback) => {
 	const sendChannel = util.getSendChannel(channel);
 
