@@ -98,6 +98,7 @@ const {ipcMain: ipc} = require('electron-better-ipc');
 })();
 ```
 
+
 ## API
 
 The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in `ipc` module with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
