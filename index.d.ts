@@ -25,7 +25,7 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callRenderer<DataType, ReturnType>(
+	callRenderer<DataType, ReturnType = unknown>(
 		browserWindow: BrowserWindow,
 		channel: string,
 		data?: DataType
@@ -51,10 +51,10 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callFocusedRenderer<T>(
+	callFocusedRenderer<DataType, ReturnType = unknown>(
 		channel: string,
-		data?: T
-	): Promise<unknown>;
+		data?: DataType
+	): Promise<ReturnType>;
 
 	/**
 	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
@@ -73,7 +73,7 @@ export interface MainProcessIpc extends IpcMain {
 	});
 	```
 	*/
-	answerRenderer<DataType, ReturnType>(
+	answerRenderer<DataType, ReturnType = unknown>(
 		channel: string,
 		callback: (
 			data: DataType,
@@ -111,7 +111,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	})();
 	```
 	*/
-	callMain<DataType, ReturnType>(channel: string, data?: DataType): Promise<ReturnType>;
+	callMain<DataType, ReturnType = unknown>(channel: string, data?: DataType): Promise<ReturnType>;
 
 	/**
 	This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
@@ -130,7 +130,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	});
 	```
 	*/
-	answerMain<DataType, ReturnType>(
+	answerMain<DataType, ReturnType = unknown>(
 		channel: string,
 		callback: (data?: DataType) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
