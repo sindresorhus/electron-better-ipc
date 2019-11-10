@@ -25,11 +25,11 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callRenderer<T, S>(
+	callRenderer<DataType, ReturnType>(
 		browserWindow: BrowserWindow,
 		channel: string,
-		data?: T
-	): Promise<S>;
+		data?: DataType
+	): Promise<ReturnType>;
 
 	/**
 	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
@@ -48,12 +48,12 @@ export interface MainProcessIpc extends IpcMain {
 	});
 	```
 	*/
-	answerRenderer<T, S>(
+	answerRenderer<DataType, ReturnType>(
 		channel: string,
 		callback: (
-			data: T,
+			data: DataType,
 			browserWindow: BrowserView
-		) => S | PromiseLike<S>
+		) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 
 	/**
@@ -62,7 +62,7 @@ export interface MainProcessIpc extends IpcMain {
 	@param channel - The channel to send the message on.
 	@param data - The data to send to the receiver.
 	*/
-	sendToRenderers<T>(channel: string, data?: T): void;
+	sendToRenderers<DataType>(channel: string, data?: DataType): void;
 }
 
 export interface RendererProcessIpc extends IpcRenderer {
@@ -86,7 +86,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	})();
 	```
 	*/
-	callMain<T, S>(channel: string, data?: T): Promise<S>;
+	callMain<DataType, ReturnType>(channel: string, data?: DataType): Promise<ReturnType>;
 
 	/**
 	This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
@@ -105,9 +105,9 @@ export interface RendererProcessIpc extends IpcRenderer {
 	});
 	```
 	*/
-	answerMain<T, S>(
+	answerMain<DataType, ReturnType>(
 		channel: string,
-		callback: (data?: T) => S | PromiseLike<S>
+		callback: (data?: DataType) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 }
 
