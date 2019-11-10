@@ -47,8 +47,12 @@ test('main', async t => {
 		// https://github.com/electron/spectron/issues/282
 		'"test-error:renderer:from-main:error-message" "test-error:main:answer"',
 		'"test-error:renderer:from-main:is-error" true',
+		'"test-focused:renderer:answer-from-main:" "test-focused:main:answer"',
+		'"test-focused:renderer:data-from-main:" "optional-data"',
 		'"test:renderer:answer-from-main:" "test:main:answer"',
 		'"test:renderer:data-from-main:" "optional-data"',
+		'test-focused:main:answer-from-renderer test-focused:renderer:answer-data',
+		'test-focused:main:data-from-renderer: optional-data',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
 		'test:main:data-from-renderer: optional-data'
 	]);
