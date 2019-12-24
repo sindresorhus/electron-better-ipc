@@ -132,7 +132,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	*/
 	answerMain<DataType, ReturnType = unknown>(
 		channel: string,
-		callback: (data?: DataType) => ReturnType | PromiseLike<ReturnType>
+		callback: (data: DataType) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 }
 
