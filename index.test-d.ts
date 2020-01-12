@@ -70,11 +70,11 @@ ipcRenderer.answerMain('get-emoji', emojiName => {
 	return '🦄';
 });
 ipcRenderer.answerMain<string>('get-emoji', emojiName => {
-	expectType<string | undefined>(emojiName);
+	expectType<string>(emojiName);
 	return '🦄';
 });
 ipcRenderer.answerMain<string, string>('get-emoji', emojiName => {
-	expectType<string | undefined>(emojiName);
+	expectType<string>(emojiName);
 	return '🦄';
 });
 

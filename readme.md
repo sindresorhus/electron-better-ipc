@@ -6,7 +6,6 @@ The biggest benefit of this module over the [built-in IPC](https://electronjs.or
 
 You can use this module directly in both the main and renderer process.
 
-
 ## Install
 
 ```
@@ -14,7 +13,6 @@ $ npm install electron-better-ipc
 ```
 
 *Requires Electron 5 or later.*
-
 
 ## Usage
 
@@ -98,14 +96,13 @@ const {ipcMain: ipc} = require('electron-better-ipc');
 })();
 ```
 
-
 ## API
 
 The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in `ipc` module with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
 
 ## Main process
 
-### ipcMain.callRenderer(browserWindow, channel, [data])
+### ipcMain.callRenderer(browserWindow, channel, data?)
 
 Send a message to the given window.
 
@@ -131,7 +128,7 @@ Type: `unknown`
 
 The data to send to the receiver.
 
-### ipcMain.callFocusedRenderer(channel, [data])
+### ipcMain.callFocusedRenderer(channel, data?)
 
 Send a message to the focused window, as determined by `electron.BrowserWindow.getFocusedWindow`.
 
@@ -163,13 +160,13 @@ Type: `string`
 
 The channel to send the message on.
 
-#### callback([data], browserWindow)
+#### callback(data?, browserWindow)
 
 Type: `Function | AsyncFunction`
 
 The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
 
-### ipcMain.sendToRenderers(channel, [data])
+### ipcMain.sendToRenderers(channel, data?)
 
 Send a message to all renderer processes (windows).
 
@@ -187,7 +184,7 @@ The data to send to the receiver.
 
 ## Renderer process
 
-### ipcRenderer.callMain(channel, [data])
+### ipcRenderer.callMain(channel, data?)
 
 Send a message to the main process.
 
@@ -219,12 +216,11 @@ Type: `string`
 
 The channel to send the message on.
 
-#### callback([data])
+#### callback(data?)
 
-Type: `Function` `AsyncFunction`
+Type: `Function | AsyncFunction`
 
 The return value is sent back to the `ipcMain.callRenderer` in the main process.
-
 
 ## Related
 
