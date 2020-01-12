@@ -25,11 +25,11 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callRenderer<T>(
+	callRenderer<DataType, ReturnType = unknown>(
 		browserWindow: BrowserWindow,
 		channel: string,
-		data?: T
-	): Promise<unknown>;
+		data?: DataType
+	): Promise<ReturnType>;
 
 	/**
 	Send a message to the focused window, as determined by `electron.BrowserWindow.getFocusedWindow`.
@@ -51,10 +51,10 @@ export interface MainProcessIpc extends IpcMain {
 	})();
 	```
 	*/
-	callFocusedRenderer<T>(
+	callFocusedRenderer<DataType, ReturnType = unknown>(
 		channel: string,
-		data?: T
-	): Promise<unknown>;
+		data?: DataType
+	): Promise<ReturnType>;
 
 	/**
 	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
@@ -73,12 +73,12 @@ export interface MainProcessIpc extends IpcMain {
 	});
 	```
 	*/
-	answerRenderer<T>(
+	answerRenderer<DataType, ReturnType = unknown>(
 		channel: string,
 		callback: (
-			data: unknown,
+			data: DataType,
 			browserWindow: BrowserView
-		) => T | PromiseLike<T>
+		) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 
 	/**
@@ -87,7 +87,7 @@ export interface MainProcessIpc extends IpcMain {
 	@param channel - The channel to send the message on.
 	@param data - The data to send to the receiver.
 	*/
-	sendToRenderers<T>(channel: string, data?: T): void;
+	sendToRenderers<DataType>(channel: string, data?: DataType): void;
 }
 
 export interface RendererProcessIpc extends IpcRenderer {
@@ -111,7 +111,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 	})();
 	```
 	*/
-	callMain<T>(channel: string, data?: T): Promise<unknown>;
+	callMain<DataType, ReturnType = unknown>(channel: string, data?: DataType): Promise<ReturnType>;
 
 	/**
 	This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
@@ -130,9 +130,9 @@ export interface RendererProcessIpc extends IpcRenderer {
 	});
 	```
 	*/
-	answerMain<T>(
+	answerMain<DataType, ReturnType = unknown>(
 		channel: string,
-		callback: (data?: unknown) => T | PromiseLike<T>
+		callback: (data: DataType) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 }
 
