@@ -37,5 +37,7 @@ let mainWindow;
 	console.log('test:main:answer-from-renderer:', answer);
 
 	const answerFromFocusedRenderer = await ipc.callFocusedRenderer('test-focused', 'optional-data');
+	console.log('test-focused:main:answer-from-renderer:', answerFromFocusedRenderer);
+
 	console.log('test-focused:main:answer-from-renderer', answerFromFocusedRenderer);
 })();
