@@ -53,7 +53,9 @@ test('main', async t => {
 		'"test:renderer:data-from-main:" "optional-data"',
 		'test-focused:main:answer-from-renderer: test-focused:renderer:answer-data',
 		'test-focused:main:data-from-renderer: optional-data',
+		'test-focused:main:error-from-renderer: No browser window in focus',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
-		'test:main:data-from-renderer: optional-data'
+		'test:main:data-from-renderer: optional-data',
+		'test:main:error-from-renderer: Browser window required'
 	]);
 });

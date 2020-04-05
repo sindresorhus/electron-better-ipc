@@ -39,5 +39,16 @@ let mainWindow;
 	const answerFromFocusedRenderer = await ipc.callFocusedRenderer('test-focused', 'optional-data');
 	console.log('test-focused:main:answer-from-renderer:', answerFromFocusedRenderer);
 
-	console.log('test-focused:main:answer-from-renderer', answerFromFocusedRenderer);
+	try {
+		await ipc.callRenderer();
+	} catch (error) {
+		console.log('test:main:error-from-renderer:', error.message);
+	}
+
+	try {
+		mainWindow.hide();
+		await ipc.callFocusedRenderer();
+	} catch (error) {
+		console.log('test-focused:main:error-from-renderer:', error.message);
+	}
 })();
