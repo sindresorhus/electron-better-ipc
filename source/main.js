@@ -7,6 +7,10 @@ const {ipcMain, BrowserWindow} = electron;
 const ipc = Object.create(ipcMain || {});
 
 ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, reject) => {
+	if (!browserWindow) {
+		throw new Error('Browser window required');
+	}
+
 	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(browserWindow.id, channel);
 
 	const cleanup = () => {
@@ -43,7 +47,14 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	}
 });
 
-ipc.callFocusedRenderer = (...args) => ipc.callRenderer(BrowserWindow.getFocusedWindow(), ...args);
+ipc.callFocusedRenderer = async (...args) => {
+	const focusedWindow = BrowserWindow.getFocusedWindow();
+	if (!focusedWindow) {
+		throw new Error('No browser window in focus');
+	}
+
+	return ipc.callRenderer(focusedWindow, ...args);
+};
 
 ipc.answerRenderer = (channel, callback) => {
 	const sendChannel = util.getSendChannel(channel);
