@@ -47,11 +47,10 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	}
 });
 
-ipc.callFocusedRenderer = (...args) => {
+ipc.callFocusedRenderer = async (...args) => {
 	const focusedWindow = BrowserWindow.getFocusedWindow();
-
 	if (!focusedWindow) {
-		return Promise.reject(new Error('No browser window in focus'));
+		throw new Error('No browser window in focus');
 	}
 
 	return ipc.callRenderer(focusedWindow, ...args);
