@@ -45,12 +45,16 @@ test('main', async t => {
 	t.deepEqual(logs, [
 		// TODO: The value is missing as Spectron only captures the first argument to `console.log`:
 		// https://github.com/electron/spectron/issues/282
+		'"test-concurrency:renderer:answer-from-main-1:" "test-concurrency:main:answer:data-1"',
+		'"test-concurrency:renderer:answer-from-main-2:" "test-concurrency:main:answer:data-2"',
 		'"test-error:renderer:from-main:error-message" "test-error:main:answer"',
 		'"test-error:renderer:from-main:is-error" true',
 		'"test-focused:renderer:answer-from-main:" "test-focused:main:answer"',
 		'"test-focused:renderer:data-from-main:" "optional-data"',
 		'"test:renderer:answer-from-main:" "test:main:answer"',
 		'"test:renderer:data-from-main:" "optional-data"',
+		'test-concurrency:main:data-from-renderer: data-1',
+		'test-concurrency:main:data-from-renderer: data-2',
 		'test-focused:main:answer-from-renderer: test-focused:renderer:answer-data',
 		'test-focused:main:data-from-renderer: optional-data',
 		'test-focused:main:error-from-renderer: No browser window in focus',

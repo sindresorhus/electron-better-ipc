@@ -19,6 +19,11 @@ ipc.answerRenderer('test-error', async () => {
 	throw new Error('test-error:main:answer');
 });
 
+ipc.answerRenderer('test-concurrency', async data => {
+	console.log('test-concurrency:main:data-from-renderer:', data);
+	return `test-concurrency:main:answer:${data}`;
+});
+
 let mainWindow;
 
 (async () => {
