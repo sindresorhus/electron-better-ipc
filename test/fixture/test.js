@@ -58,4 +58,11 @@ test('main', async t => {
 		'test:main:data-from-renderer: optional-data',
 		'test:main:error-from-renderer: Browser window required'
 	]);
+
+	const {ipcRenderer, remote: {ipcMain}} = app.electron;
+	const countDataAndErrorListeners = async emitter =>
+		(await emitter.eventNames()).filter(name => /(data|error)-channel/.test(name)).length;
+
+	t.is(await countDataAndErrorListeners(ipcMain), 0);
+	t.is(await countDataAndErrorListeners(ipcRenderer), 0);
 });
