@@ -38,6 +38,11 @@ let mainWindow;
 	});
 	await mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
+	ipc.answerRenderer(mainWindow, 'test-specific-window', async data => {
+		console.log('test-specific-data:main:data-from-renderer', data);
+		return `test-specific-window:main:answer:${data}`;
+	})
+
 	const answer = await ipc.callRenderer(mainWindow, 'test', 'optional-data');
 	console.log('test:main:answer-from-renderer:', answer);
 
