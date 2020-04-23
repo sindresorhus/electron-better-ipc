@@ -56,30 +56,59 @@ export interface MainProcessIpc extends IpcMain {
 		data?: DataType
 	): Promise<ReturnType>;
 
-	/**
-	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
+  answerRenderer: {
+    /**
+    This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
 
-	@param channel - The channel to send the message on.
-	@param callback - The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
-	@returns A function, that when called, removes the listener.
+    @param channel - The channel to send the message on.
+    @param callback - The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
+    @returns A function, that when called, removes the listener.
 
-	@example
-	```
-	import {ipcMain as ipc} from 'electron-better-ipc';
+    @example
+    ```
+    import {ipcMain as ipc} from 'electron-better-ipc';
 
-	ipc.answerRenderer('get-emoji', async emojiName => {
-		const emoji = await getEmoji(emojiName);
-		return emoji;
-	});
-	```
-	*/
-	answerRenderer<DataType, ReturnType = unknown>(
-		channel: string,
-		callback: (
-			data: DataType,
-			browserWindow: BrowserView
-		) => ReturnType | PromiseLike<ReturnType>
-	): () => void;
+    ipc.answerRenderer('get-emoji', async emojiName => {
+      const emoji = await getEmoji(emojiName);
+      return emoji;
+    });
+    ```
+    */
+    <DataType, ReturnType = unknown>(
+      channel: string,
+      callback: (
+        data: DataType,
+        browserWindow: BrowserView
+      ) => ReturnType | PromiseLike<ReturnType>
+    ): () => void;
+
+    /**
+    This method listens for a message from `ipcRenderer.callMain` defined in the given BrowserWindow's renderer process and replies back.
+
+    @param browserWindow - The window for which to expect the message.
+    @param channel - The channel to send the message on.
+    @param callback - The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
+    @returns A function, that when called, removes the listener.
+
+    @example
+    ```
+    import {ipcMain as ipc} from 'electron-better-ipc';
+
+    ipc.answerRenderer('get-emoji', async emojiName => {
+      const emoji = await getEmoji(emojiName);
+      return emoji;
+    });
+    ```
+    */
+    <DataType, ReturnType = unknown>(
+      browserWindow: BrowserWindow,
+      channel: string,
+      callback: (
+        data: DataType,
+        browserWindow: BrowserView
+      ) => ReturnType | PromiseLike<ReturnType>
+    ): () => void;
+  }
 
 	/**
 	Send a message to all renderer processes (windows).

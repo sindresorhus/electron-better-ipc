@@ -19,6 +19,9 @@ expectType<Promise<unknown>>(
 expectType<Promise<string>>(
 	ipcMain.callRenderer<string, string>(browserWindow!, 'get-emoji', 'unicorn')
 );
+expectType<Promise<string>>(
+  ipcMain.callRenderer(browserWindow!, 'get-emoji', 'unicorn')
+);
 
 const detachListener = ipcMain.answerRenderer('get-emoji', emojiName => {
 	expectType<unknown>(emojiName);
@@ -31,11 +34,16 @@ ipcMain.answerRenderer('get-emoji', async emojiName => {
 ipcMain.answerRenderer<string>('get-emoji', async emojiName => {
 	expectType<string>(emojiName);
 	return '🦄';
-})
+});
 ipcMain.answerRenderer<string, string>('get-emoji', async emojiName => {
 	expectType<string>(emojiName);
 	return '🦄';
-})
+});
+ipcMain.answerRenderer<string, string>(browserWindow!, 'get-emoji', async emojiName => {
+  expectType<string>(emojiName);
+  return '🦄';
+});
+
 
 expectType<() => void>(detachListener);
 detachListener();

@@ -166,6 +166,30 @@ Type: `Function | AsyncFunction`
 
 The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
 
+### ipcMain.answerRenderer(browserWindow, channel, callback)
+
+This method listens for a message from `ipcRenderer.callMain` defined in the given BrowserWindow's renderer process and replies back.
+
+Returns a function, that when called, removes the listener.
+
+#### browserWindow
+
+Type: `BrowserWindow`
+
+The window for which to expect the message.
+
+#### channel
+
+Type: `string`
+
+The channel to send the message on.
+
+#### callback(data?, browserWindow)
+
+Type: `Function | AsyncFunction`
+
+The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
+
 ### ipcMain.sendToRenderers(channel, data?)
 
 Send a message to all renderer processes (windows).
