@@ -62,8 +62,7 @@ test('main', async t => {
 		'test-focused:main:error-from-renderer: No browser window in focus',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
 		'test:main:data-from-renderer: optional-data',
-		'test:main:error-from-renderer: Browser window required',
-
+		'test:main:error-from-renderer: Browser window required'
 	]);
 
 	const {ipcRenderer, remote: {ipcMain}} = app.electron;
