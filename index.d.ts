@@ -56,8 +56,6 @@ export interface MainProcessIpc extends IpcMain {
 		data?: DataType
 	): Promise<ReturnType>;
 
-
-
 	/**
 	This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
 
