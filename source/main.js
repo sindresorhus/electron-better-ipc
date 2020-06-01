@@ -4,7 +4,7 @@ const {serializeError, deserializeError} = require('serialize-error');
 const util = require('./util');
 
 const {ipcMain, BrowserWindow} = electron;
-const ipc = Object.create(ipcMain || {});
+const ipc = ipcMain || {};
 
 ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, reject) => {
 	if (!browserWindow) {

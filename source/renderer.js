@@ -4,7 +4,7 @@ const {serializeError, deserializeError} = require('serialize-error');
 const util = require('./util');
 
 const {ipcRenderer} = electron;
-const ipc = Object.create(ipcRenderer || {});
+const ipc = ipcRenderer || {};
 
 ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
