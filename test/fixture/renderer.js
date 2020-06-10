@@ -32,6 +32,6 @@ ipc.answerMain('test-focused', data => {
 	return 'test-focused:renderer:answer-data';
 });
 
-ipc.answerMain('test-specific-window', 'data-1').then(answer => {
+ipc.callMain('test-specific-window', 'data-1').then(answer => {
 	console.log('test-specific-window:renderer:answer-from-main:', answer);
 });
