@@ -51,11 +51,32 @@ ipc.callFocusedRenderer = async (...args) => {
 	return ipc.callRenderer(focusedWindow, ...args);
 };
 
-ipc.answerRenderer = (channel, callback) => {
+ipc.answerRenderer = (browserWindowOrChannel, channelOrCallback, callbackOrNothing) => {
+	let window;
+	let channel;
+	let callback;
+
+	if (callbackOrNothing === undefined) {
+		channel = browserWindowOrChannel;
+		callback = channelOrCallback;
+	} else {
+		window = browserWindowOrChannel;
+		channel = channelOrCallback;
+		callback = callbackOrNothing;
+
+		if (!window) {
+			throw new Error('Browser window required');
+		}
+	}
+
 	const sendChannel = util.getSendChannel(channel);
 
 	const listener = async (event, data) => {
 		const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+		if (window && window.id !== browserWindow.id) {
+			return;
+		}
 
 		const send = (channel, data) => {
 			if (!(browserWindow && browserWindow.isDestroyed())) {

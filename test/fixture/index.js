@@ -36,6 +36,12 @@ let mainWindow;
 			nodeIntegration: true
 		}
 	});
+
+	ipc.answerRenderer(mainWindow, 'test-specific-window', async data => {
+		console.log('test-specific-window:main:data-from-renderer:', data);
+		return `test-specific-window:main:answer:${data}`;
+	});
+
 	await mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
 	const answer = await ipc.callRenderer(mainWindow, 'test', 'optional-data');
