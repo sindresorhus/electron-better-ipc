@@ -1,4 +1,4 @@
-import {BrowserWindow, BrowserView, IpcMain, IpcRenderer} from 'electron';
+import {BrowserWindow, IpcMain, IpcRenderer} from 'electron';
 
 export interface MainProcessIpc extends IpcMain {
 	/**
@@ -77,7 +77,7 @@ export interface MainProcessIpc extends IpcMain {
 		channel: string,
 		callback: (
 			data: DataType,
-			browserWindow: BrowserView
+			browserWindow: BrowserWindow
 		) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 
@@ -104,7 +104,7 @@ export interface MainProcessIpc extends IpcMain {
 		channel: string,
 		callback: (
 			data: DataType,
-			browserWindow: BrowserView
+			browserWindow: BrowserWindow
 		) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
 
