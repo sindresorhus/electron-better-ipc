@@ -1,4 +1,4 @@
-# electron-better-ipc [![Build Status](https://travis-ci.org/sindresorhus/electron-better-ipc.svg?branch=master)](https://travis-ci.org/sindresorhus/electron-better-ipc)
+# electron-better-ipc
 
 > Simplified IPC communication for Electron apps
 
