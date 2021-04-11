@@ -39,12 +39,13 @@
 		"serialize-error": "^5.0.0"
 	},
 	"devDependencies": {
+		"@electron/remote": "^1.1.0",
 		"ava": "^2.2.0",
-		"electron": "^6.0.2",
+		"electron": "^12",
 		"execa": "^4.0.0",
 		"spectron": "^8.0.0",
-		"tsd": "^0.11.0",
-		"xo": "^0.25.3"
+		"tsd": "^0.14",
+		"xo": "^0.38"
 	},
 	"xo": {
 		"envs": [

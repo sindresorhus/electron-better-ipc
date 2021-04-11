@@ -1,5 +1,6 @@
 'use strict';
 const electron = require('electron');
+const {getCurrentWindow} = require('@electron/remote');
 const {serializeError, deserializeError} = require('serialize-error');
 const util = require('./util');
 
@@ -37,7 +38,7 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 });
 
 ipc.answerMain = (channel, callback) => {
-	const browserWindow = electron.remote.getCurrentWindow();
+	const browserWindow = getCurrentWindow();
 	const sendChannel = util.getRendererSendChannel(browserWindow.id, channel);
 
 	const listener = async (event, data) => {
