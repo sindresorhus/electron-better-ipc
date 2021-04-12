@@ -41,7 +41,7 @@
 	"devDependencies": {
 		"@electron/remote": "^1.1.0",
 		"ava": "^2.2.0",
-		"electron": "^12",
+		"electron": "^10",
 		"execa": "^4.0.0",
 		"spectron": "^8.0.0",
 		"tsd": "^0.14",
