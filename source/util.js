@@ -5,6 +5,8 @@ const getUniqueId = () => `${Date.now()}-${Math.random()}`;
 const getSendChannel = channel => `%better-ipc-send-channel-${channel}`;
 const getRendererSendChannel = (windowId, channel) => `%better-ipc-send-channel-${windowId}-${channel}`;
 
+module.exports.currentWindowChannel = '%better-ipc-current-window';
+
 module.exports.getSendChannel = getSendChannel;
 module.exports.getRendererSendChannel = getRendererSendChannel;
 

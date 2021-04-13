@@ -6,6 +6,10 @@ const util = require('./util');
 const {ipcMain, BrowserWindow} = electron;
 const ipc = Object.create(ipcMain || {});
 
+ipcMain.handle(util.currentWindowChannel, event => {
+	return event.sender.id;
+});
+
 ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, reject) => {
 	if (!browserWindow) {
 		throw new Error('Browser window required');
