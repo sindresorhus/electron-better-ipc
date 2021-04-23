@@ -65,6 +65,8 @@ test('main', async t => {
 		'test:main:error-from-renderer: Browser window required'
 	]);
 
+	// This part of the test will be fixed (remote will be removed) but first I need to figure
+	// out how to run the test in the first place.
 	const {ipcRenderer, remote: {ipcMain}} = app.electron;
 	const countDataAndErrorListeners = async emitter =>
 		(await emitter.eventNames()).filter(name => /(data|error)-channel/.test(name)).length;
