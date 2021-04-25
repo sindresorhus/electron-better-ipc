@@ -3,7 +3,7 @@
 const getUniqueId = () => `${Date.now()}-${Math.random()}`;
 
 const getSendChannel = channel => `%better-ipc-send-channel-${channel}`;
-const getRendererSendChannel = (windowId, channel) => `%better-ipc-send-channel-${windowId}-${channel}`;
+const getRendererSendChannel = channel => `%better-ipc-send-channel-${channel}`;
 
 module.exports.currentWindowChannel = '%better-ipc-current-window';
 
@@ -19,11 +19,11 @@ module.exports.getResponseChannels = channel => {
 	};
 };
 
-module.exports.getRendererResponseChannels = (windowId, channel) => {
+module.exports.getRendererResponseChannels = channel => {
 	const id = getUniqueId();
 	return {
-		sendChannel: getRendererSendChannel(windowId, channel),
-		dataChannel: `%better-ipc-response-data-channel-${windowId}-${channel}-${id}`,
-		errorChannel: `%better-ipc-response-error-channel-${windowId}-${channel}-${id}`
+		sendChannel: getRendererSendChannel(channel),
+		dataChannel: `%better-ipc-response-data-channel-${channel}-${id}`,
+		errorChannel: `%better-ipc-response-error-channel-${channel}-${id}`
 	};
 };
