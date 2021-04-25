@@ -12,7 +12,7 @@
 	},
 	"scripts": {
 		"test": "xo && tsd",
-		"test-with-spectron": "xo && (cd test/fixture && ava) && tsd"
+		"test-with-app": "xo && (cd test/fixture && ava) && tsd"
 	},
 	"files": [
 		"index.js",
@@ -42,8 +42,6 @@
 		"ava": "^2.2.0",
 		"electron": "^10",
 		"execa": "^4.0.0",
-		"spectron": "^12",
-		"synchronized-promise": "^0.3.1",
 		"tsd": "^0.14",
 		"xo": "^0.38"
 	},
