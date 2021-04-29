@@ -3,7 +3,7 @@ import {expectType, expectError} from 'tsd';
 import {BrowserWindow} from 'electron';
 import {ipcMain, ipcRenderer} from './index.js';
 
-const browserWindow = BrowserWindow.getFocusedWindow()!;
+const browserWindow = BrowserWindow.getFocusedWindow()!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
 // IpcMain
 

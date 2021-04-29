@@ -18,11 +18,9 @@ export interface MainProcessIpc extends IpcMain {
 
 	const browserWindow = BrowserWindow.getFocusedWindow();
 
-	(async () => {
-		const emoji = await ipc.callRenderer(browserWindow!, 'get-emoji', 'unicorn');
-		console.log(emoji);
-		//=> '🦄'
-	})();
+	const emoji = await ipc.callRenderer(browserWindow!, 'get-emoji', 'unicorn');
+	console.log(emoji);
+	//=> '🦄'
 	```
 	*/
 	callRenderer<DataType, ReturnType = unknown>(
@@ -44,11 +42,9 @@ export interface MainProcessIpc extends IpcMain {
 	```
 	import {ipcMain as ipc} from 'electron-better-ipc';
 
-	(async () => {
-		const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn');
-		console.log(emoji);
-		//=> '🦄'
-	})();
+	const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn');
+	console.log(emoji);
+	//=> '🦄'
 	```
 	*/
 	callFocusedRenderer<DataType, ReturnType = unknown>(
@@ -131,11 +127,9 @@ export interface RendererProcessIpc extends IpcRenderer {
 	```
 	import {ipcRenderer as ipc} from 'electron-better-ipc';
 
-	(async () => {
-		const emoji = await ipc.callMain('get-emoji', 'unicorn');
-		console.log(emoji);
-		//=> '🦄'
-	})();
+	const emoji = await ipc.callMain('get-emoji', 'unicorn');
+	console.log(emoji);
+	//=> '🦄'
 	```
 	*/
 	callMain<DataType, ReturnType = unknown>(channel: string, data?: DataType): Promise<ReturnType>;

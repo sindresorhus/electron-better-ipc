@@ -36,14 +36,14 @@
 		"await"
 	],
 	"dependencies": {
-		"serialize-error": "^5.0.0"
+		"serialize-error": "^8.1.0"
 	},
 	"devDependencies": {
 		"ava": "^2.2.0",
 		"electron": "^10",
-		"execa": "^4.0.0",
+		"execa": "^5.0.0",
 		"tsd": "^0.14",
-		"xo": "^0.38"
+		"xo": "^0.39.1"
 	},
 	"xo": {
 		"envs": [
