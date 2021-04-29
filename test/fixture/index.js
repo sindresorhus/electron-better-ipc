@@ -66,12 +66,12 @@ ipc.answerRenderer('test-concurrency', async data => {
 		console.log('test-focused:main:error-from-renderer:', error.message);
 	}
 
-	// Get the count of listeners from rednerer
+	// Get the count of listeners from the renderer.
 	mainWindow.webContents.send('count');
 
 	console.log('test-count-main-listeners:', countDataAndErrorListeners(ipcMain));
 
-	// Wait to get all logs from renderer and then quit the app
+	// Wait to get all logs from the renderer and then quit the app.
 	setInterval(() => {
 		if (countOfLogs === 10) {
 			app.quit();
