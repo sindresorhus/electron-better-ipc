@@ -1,26 +1,26 @@
 /// <reference lib="dom"/>
 import {expectType, expectError} from 'tsd';
 import {BrowserWindow} from 'electron';
-import {ipcMain, ipcRenderer} from '.';
+import {ipcMain, ipcRenderer} from './index.js';
 
-const browserWindow = BrowserWindow.getFocusedWindow();
+const browserWindow = BrowserWindow.getFocusedWindow()!;
 
-// ipcMain
+// IpcMain
 
 expectType<Promise<unknown>>(
-	ipcMain.callRenderer(browserWindow!, 'get-emoji')
+	ipcMain.callRenderer(browserWindow, 'get-emoji')
 );
 expectType<Promise<unknown>>(
-	ipcMain.callRenderer(browserWindow!, 'get-emoji', 'unicorn')
+	ipcMain.callRenderer(browserWindow, 'get-emoji', 'unicorn')
 );
 expectType<Promise<unknown>>(
-	ipcMain.callRenderer<string>(browserWindow!, 'get-emoji', 'unicorn')
+	ipcMain.callRenderer<string>(browserWindow, 'get-emoji', 'unicorn')
 );
 expectType<Promise<string>>(
-	ipcMain.callRenderer<string, string>(browserWindow!, 'get-emoji', 'unicorn')
+	ipcMain.callRenderer<string, string>(browserWindow, 'get-emoji', 'unicorn')
 );
 expectType<Promise<string>>(
-	ipcMain.callRenderer(browserWindow!, 'get-emoji', 'unicorn')
+	ipcMain.callRenderer(browserWindow, 'get-emoji', 'unicorn')
 );
 
 const detachListener = ipcMain.answerRenderer('get-emoji', emojiName => {
@@ -39,11 +39,10 @@ ipcMain.answerRenderer<string, string>('get-emoji', async emojiName => {
 	expectType<string>(emojiName);
 	return '🦄';
 });
-ipcMain.answerRenderer<string, string>(browserWindow!, 'get-emoji', async emojiName => {
+ipcMain.answerRenderer<string, string>(browserWindow, 'get-emoji', async emojiName => {
 	expectType<string>(emojiName);
 	return '🦄';
 });
-
 
 expectType<() => void>(detachListener);
 detachListener();
@@ -54,7 +53,7 @@ ipcMain.sendToRenderers<string>('get-emoji', '🦄');
 
 expectError(ipcMain.callMain);
 
-// ipcRenderer
+// IpcRenderer
 
 expectType<Promise<unknown>>(
 	ipcRenderer.callMain('get-emoji', 'unicorn')

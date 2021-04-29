@@ -11,7 +11,7 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 		throw new Error('Browser window required');
 	}
 
-	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(browserWindow.id, channel);
+	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(channel);
 
 	const cleanup = () => {
 		ipc.off(dataChannel, onData);
@@ -19,17 +19,23 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	};
 
 	const onData = (event, result) => {
-		cleanup();
-		resolve(result);
+		const window = BrowserWindow.fromWebContents(event.sender);
+		if (window.id === browserWindow.id) {
+			cleanup();
+			resolve(result);
+		}
 	};
 
 	const onError = (event, error) => {
-		cleanup();
-		reject(deserializeError(error));
+		const window = BrowserWindow.fromWebContents(event.sender);
+		if (window.id === browserWindow.id) {
+			cleanup();
+			reject(deserializeError(error));
+		}
 	};
 
-	ipc.once(dataChannel, onData);
-	ipc.once(errorChannel, onError);
+	ipc.on(dataChannel, onData);
+	ipc.on(errorChannel, onError);
 
 	const completeData = {
 		dataChannel,

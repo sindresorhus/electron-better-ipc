@@ -1,74 +1,46 @@
 import electron from 'electron';
-import {serial as test} from 'ava';
-import {Application} from 'spectron';
+import test from 'ava';
+import execa from 'execa';
 
-test.beforeEach(async t => {
-	t.context.app = new Application({
-		path: electron,
-		args: ['.']
+const run = async file => {
+	const {stdout} = await execa(electron, [file], {
+		timeout: 10000
 	});
-});
 
-test.afterEach(t => {
-	return t.context.app.stop();
-});
+	return stdout.trim();
+};
 
 test('main', async t => {
-	const {app} = t.context;
-	await app.start();
-	await app.client.waitUntilWindowLoaded();
+	const stdout = await run('index.js');
 
-	const [mainLogs, rendererLogs] = await Promise.all([
-		app.client.getMainProcessLogs(),
-		app.client.getRenderProcessLogs()
-	]);
-
-	let logs = [
-		...mainLogs,
-		// TODO: We have to clean the message because of:
-		// https://github.com/electron/spectron/issues/283
-		...rendererLogs.map(x => x.message.replace(/[^"]+/, ''))
-	].sort();
-
-	// More useless cleanup because Spectron sucks
-	logs = logs.filter(x =>
-		!x.startsWith('DevTools listening') &&
-		!x.includes(':CONSOLE(') &&
-		// Cannot match like this one: [79915:0924/100744.171411:INFO:CONSOLE(14)]
-		// !/^\[.*:CONSOLE\(\d\)\]/.test(x) &&
-		x !== '' &&
-		x !== 'Please protect ports used by ChromeDriver and related test frameworks to prevent access by malicious code.'
-	);
+	const logs = [
+		...stdout.split('\n')
+	].filter(x =>
+		x !== ''
+	).sort();
 
 	console.log(logs);
 
 	t.deepEqual(logs, [
-		// TODO: The value is missing as Spectron only captures the first argument to `console.log`:
-		// https://github.com/electron/spectron/issues/282
-		'"test-concurrency:renderer:answer-from-main-1:" "test-concurrency:main:answer:data-1"',
-		'"test-concurrency:renderer:answer-from-main-2:" "test-concurrency:main:answer:data-2"',
-		'"test-error:renderer:from-main:error-message" "test-error:main:answer"',
-		'"test-error:renderer:from-main:is-error" true',
-		'"test-focused:renderer:answer-from-main:" "test-focused:main:answer"',
-		'"test-focused:renderer:data-from-main:" "optional-data"',
-		'"test-specific-window:renderer:answer-from-main:" "test-specific-window:main:answer:data-1"',
-		'"test:renderer:answer-from-main:" "test:main:answer"',
-		'"test:renderer:data-from-main:" "optional-data"',
 		'test-concurrency:main:data-from-renderer: data-1',
 		'test-concurrency:main:data-from-renderer: data-2',
+		'test-concurrency:renderer:answer-from-main-1: test-concurrency:main:answer:data-1',
+		'test-concurrency:renderer:answer-from-main-2: test-concurrency:main:answer:data-2',
+		'test-count-main-listeners: 0',
+		'test-count-renderer-listeners: 0',
+		'test-error:renderer:from-main:error-message test-error:main:answer',
+		'test-error:renderer:from-main:is-error true',
 		'test-focused:main:answer-from-renderer: test-focused:renderer:answer-data',
 		'test-focused:main:data-from-renderer: optional-data',
 		'test-focused:main:error-from-renderer: No browser window in focus',
+		'test-focused:renderer:answer-from-main: test-focused:main:answer',
+		'test-focused:renderer:data-from-main: optional-data',
 		'test-specific-window:main:data-from-renderer: data-1',
+		'test-specific-window:renderer:answer-from-main: test-specific-window:main:answer:data-1',
 		'test:main:answer-from-renderer: test:renderer:answer-data',
 		'test:main:data-from-renderer: optional-data',
-		'test:main:error-from-renderer: Browser window required'
+		'test:main:error-from-renderer: Browser window required',
+		'test:renderer:answer-from-main: test:main:answer',
+		'test:renderer:data-from-main: optional-data'
 	]);
-
-	const {ipcRenderer, remote: {ipcMain}} = app.electron;
-	const countDataAndErrorListeners = async emitter =>
-		(await emitter.eventNames()).filter(name => /(data|error)-channel/.test(name)).length;
-
-	t.is(await countDataAndErrorListeners(ipcMain), 0);
-	t.is(await countDataAndErrorListeners(ipcRenderer), 0);
 });

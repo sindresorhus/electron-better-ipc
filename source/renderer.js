@@ -14,12 +14,12 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 		ipc.off(errorChannel, onError);
 	};
 
-	const onData = (event, result) => {
+	const onData = (_event, result) => {
 		cleanup();
 		resolve(result);
 	};
 
-	const onError = (event, error) => {
+	const onError = (_event, error) => {
 		cleanup();
 		reject(deserializeError(error));
 	};
@@ -37,10 +37,9 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 });
 
 ipc.answerMain = (channel, callback) => {
-	const browserWindow = electron.remote.getCurrentWindow();
-	const sendChannel = util.getRendererSendChannel(browserWindow.id, channel);
+	const sendChannel = util.getRendererSendChannel(channel);
 
-	const listener = async (event, data) => {
+	const listener = async (_event, data) => {
 		const {dataChannel, errorChannel, userData} = data;
 
 		try {
