@@ -10,8 +10,8 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
 
 	const cleanup = () => {
-		ipc.off(dataChannel, onData);
-		ipc.off(errorChannel, onError);
+		ipcRenderer.off(dataChannel, onData);
+		ipcRenderer.off(errorChannel, onError);
 	};
 
 	const onData = (_event, result) => {
@@ -24,8 +24,8 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 		reject(deserializeError(error));
 	};
 
-	ipc.once(dataChannel, onData);
-	ipc.once(errorChannel, onError);
+	ipcRenderer.once(dataChannel, onData);
+	ipcRenderer.once(errorChannel, onError);
 
 	const completeData = {
 		dataChannel,
@@ -33,7 +33,7 @@ ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
 		userData: data
 	};
 
-	ipc.send(sendChannel, completeData);
+	ipcRenderer.send(sendChannel, completeData);
 });
 
 ipc.answerMain = (channel, callback) => {
@@ -43,16 +43,16 @@ ipc.answerMain = (channel, callback) => {
 		const {dataChannel, errorChannel, userData} = data;
 
 		try {
-			ipc.send(dataChannel, await callback(userData));
+			ipcRenderer.send(dataChannel, await callback(userData));
 		} catch (error) {
-			ipc.send(errorChannel, serializeError(error));
+			ipcRenderer.send(errorChannel, serializeError(error));
 		}
 	};
 
-	ipc.on(sendChannel, listener);
+	ipcRenderer.on(sendChannel, listener);
 
 	return () => {
-		ipc.off(sendChannel, listener);
+		ipcRenderer.off(sendChannel, listener);
 	};
 };
 
