@@ -1,7 +1,7 @@
 'use strict';
 const electron = require('electron');
 const {serializeError, deserializeError} = require('serialize-error');
-const util = require('./util');
+const util = require('./util.js');
 
 const {ipcMain, BrowserWindow} = electron;
 const ipc = Object.create(ipcMain || {});

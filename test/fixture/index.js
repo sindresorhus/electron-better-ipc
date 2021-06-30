@@ -1,8 +1,8 @@
 'use strict';
 const path = require('path');
 const {app, BrowserWindow, ipcMain} = require('electron');
-const {ipcMain: ipc} = require('../..');
-const {countDataAndErrorListeners} = require('./util');
+const {ipcMain: ipc} = require('../../index.js');
+const {countDataAndErrorListeners} = require('./util.js');
 
 let countOfLogs = 0;
 
