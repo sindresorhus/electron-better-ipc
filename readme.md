@@ -8,8 +8,8 @@ You can use this module directly in both the main and renderer process.
 
 ## Install
 
-```
-$ npm install electron-better-ipc
+```sh
+npm install electron-better-ipc
 ```
 
 *Requires Electron 10 or later.*
