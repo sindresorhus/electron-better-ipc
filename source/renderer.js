@@ -1,43 +1,22 @@
-'use strict';
-const electron = require('electron');
-const {serializeError, deserializeError} = require('serialize-error');
-const util = require('./util.js');
+import electron from 'electron';
+import {serializeError, deserializeError} from 'serialize-error';
+import {getSendChannel} from './util.js';
 
 const {ipcRenderer} = electron;
 const ipc = Object.create(ipcRenderer || {});
 
-ipc.callMain = (channel, data) => new Promise((resolve, reject) => {
-	const {sendChannel, dataChannel, errorChannel} = util.getResponseChannels(channel);
+ipc.callMain = async (channel, data) => {
+	const {value, error} = await ipcRenderer.invoke(channel, data);
 
-	const cleanup = () => {
-		ipcRenderer.off(dataChannel, onData);
-		ipcRenderer.off(errorChannel, onError);
-	};
+	if (error) {
+		throw deserializeError(error);
+	}
 
-	const onData = (_event, result) => {
-		cleanup();
-		resolve(result);
-	};
-
-	const onError = (_event, error) => {
-		cleanup();
-		reject(deserializeError(error));
-	};
-
-	ipcRenderer.once(dataChannel, onData);
-	ipcRenderer.once(errorChannel, onError);
-
-	const completeData = {
-		dataChannel,
-		errorChannel,
-		userData: data
-	};
-
-	ipcRenderer.send(sendChannel, completeData);
-});
+	return value;
+};
 
 ipc.answerMain = (channel, callback) => {
-	const sendChannel = util.getRendererSendChannel(channel);
+	const sendChannel = getSendChannel(channel);
 
 	const listener = async (_event, data) => {
 		const {dataChannel, errorChannel, userData} = data;
@@ -56,4 +35,4 @@ ipc.answerMain = (channel, callback) => {
 	};
 };
 
-module.exports = ipc;
+export {ipc as ipcRenderer};

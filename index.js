@@ -1,7 +1,2 @@
-'use strict';
-
-if (process.type === 'renderer') {
-	module.exports.ipcRenderer = require('./source/renderer.js');
-} else {
-	module.exports.ipcMain = require('./source/main.js');
-}
+export {ipcMain} from './source/main.js';
+export {ipcRenderer} from './source/renderer.js';

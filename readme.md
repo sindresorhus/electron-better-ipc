@@ -12,7 +12,7 @@ Use this module for what the built-in IPC does not do:
 - **Complete errors.** When a `handle` listener throws, the renderer gets an error with only the `message` property preserved ([electron#24427](https://github.com/electron/electron/issues/24427)). This module uses [`serialize-error`](https://github.com/sindresorhus/serialize-error), so the whole error object survives in both directions.
 - **The `BrowserWindow` that sent the message** is passed to your callback, and the answer methods return a function that removes the listener.
 
-You can use this module directly in both the main and renderer process. On the renderer side you must load it from a preload script with [`sandbox: false`](https://www.electronjs.org/docs/latest/tutorial/sandbox), because a sandboxed preload cannot load npm modules.
+You can use this module in both the main and renderer process. On the renderer side, load it from a preload script that uses [`sandbox: false`](https://www.electronjs.org/docs/latest/tutorial/sandbox) and has the `.mjs` extension. A sandboxed preload cannot load npm modules, and preload scripts ignore `"type": "module"`, so an ES module preload must be `.mjs`.
 
 ## Install
 
@@ -20,7 +20,9 @@ You can use this module directly in both the main and renderer process. On the r
 npm install electron-better-ipc
 ```
 
-*Requires Electron 10 or later.*
+*Requires Electron 28 or later, which is when Electron added ES module support.*
+
+This package is an ES module, so load it with `import`.
 
 ## Usage
 
@@ -31,7 +33,7 @@ Use the built-in IPC for this direction.
 ###### Main
 
 ```js
-const {ipcMain} = require('electron');
+import {ipcMain} from 'electron';
 
 ipcMain.handle('get-emoji', async (event, emojiName) => {
 	return getEmoji(emojiName);
@@ -41,21 +43,21 @@ ipcMain.handle('get-emoji', async (event, emojiName) => {
 ###### Renderer
 
 ```js
-const {ipcRenderer} = require('electron');
+import {ipcRenderer} from 'electron';
 
-(async () => {
-	const emoji = await ipcRenderer.invoke('get-emoji', 'unicorn');
-	console.log(emoji);
-	//=> '🦄'
-})();
+const emoji = await ipcRenderer.invoke('get-emoji', 'unicorn');
+console.log(emoji);
+//=> '🦄'
 ```
 
 This module provides `ipcMain.answerRenderer` and `ipcRenderer.callMain` for the same direction. Use them if you want the complete error object or the `BrowserWindow` in the callback.
 
+`answerRenderer` registers an `ipcMain.handle()` handler on the plain channel name, so only one handler can exist per channel and registering the same channel twice throws. Call the function it returns to remove the handler. `callMain` rejects when no handler is registered, and when a window-scoped handler is called by a different window.
+
 ###### Main
 
 ```js
-const {ipcMain: ipc} = require('electron-better-ipc');
+import {ipcMain as ipc} from 'electron-better-ipc';
 
 ipc.answerRenderer('get-emoji', async (emojiName, browserWindow) => {
 	return getEmoji(emojiName);
@@ -65,13 +67,11 @@ ipc.answerRenderer('get-emoji', async (emojiName, browserWindow) => {
 ###### Renderer
 
 ```js
-const {ipcRenderer: ipc} = require('electron-better-ipc');
+import {ipcRenderer as ipc} from 'electron-better-ipc';
 
-(async () => {
-	const emoji = await ipc.callMain('get-emoji', 'unicorn');
-	console.log(emoji);
-	//=> '🦄'
-})();
+const emoji = await ipc.callMain('get-emoji', 'unicorn');
+console.log(emoji);
+//=> '🦄'
 ```
 
 ### Main to renderer
@@ -81,19 +81,17 @@ The built-in IPC has no equal for this direction, since `webContents.send()` can
 ###### Main
 
 ```js
-const {ipcMain: ipc} = require('electron-better-ipc');
+import {ipcMain as ipc} from 'electron-better-ipc';
 
-(async () => {
-	const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn');
-	console.log(emoji);
-	//=> '🦄'
-})();
+const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn');
+console.log(emoji);
+//=> '🦄'
 ```
 
 ###### Renderer
 
 ```js
-const {ipcRenderer: ipc} = require('electron-better-ipc');
+import {ipcRenderer as ipc} from 'electron-better-ipc';
 
 ipc.answerMain('get-emoji', async emojiName => {
 	return getEmoji(emojiName);
@@ -158,7 +156,9 @@ The data to send to the receiver.
 
 This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
 
-Returns a function, that when called, removes the listener.
+Registers an `ipcMain.handle()` handler on the plain channel name, so only one handler can exist per channel. Registering the same channel twice throws.
+
+Returns a function, that when called, removes the handler.
 
 #### channel
 
@@ -176,7 +176,9 @@ The return value is sent back to the `ipcRenderer.callMain` in the renderer proc
 
 This method listens for a message from `ipcRenderer.callMain` defined in the given BrowserWindow's renderer process and replies back.
 
-Returns a function, that when called, removes the listener.
+The `ipcRenderer.callMain` promise rejects with `Message received for a different window` when a renderer other than the given window calls the channel.
+
+Returns a function, that when called, removes the handler.
 
 #### browserWindow
 

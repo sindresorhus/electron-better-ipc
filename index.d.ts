@@ -1,6 +1,6 @@
-import {BrowserWindow, IpcMain, IpcRenderer} from 'electron';
+import {type BrowserWindow, type IpcMain, type IpcRenderer} from 'electron';
 
-export interface MainProcessIpc extends IpcMain {
+export type MainProcessIpc = {
 	/**
 	Send a message to the given window.
 
@@ -111,9 +111,9 @@ export interface MainProcessIpc extends IpcMain {
 	@param data - The data to send to the receiver.
 	*/
 	sendToRenderers<DataType>(channel: string, data?: DataType): void;
-}
+} & IpcMain;
 
-export interface RendererProcessIpc extends IpcRenderer {
+export type RendererProcessIpc = {
 	/**
 	Send a message to the main process.
 
@@ -155,7 +155,7 @@ export interface RendererProcessIpc extends IpcRenderer {
 		channel: string,
 		callback: (data: DataType) => ReturnType | PromiseLike<ReturnType>
 	): () => void;
-}
+} & IpcRenderer;
 
 export const ipcMain: MainProcessIpc;
 export const ipcRenderer: RendererProcessIpc;

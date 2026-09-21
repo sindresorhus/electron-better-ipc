@@ -10,6 +10,15 @@
 		"email": "sindresorhus@gmail.com",
 		"url": "https://sindresorhus.com"
 	},
+	"type": "module",
+	"exports": {
+		"types": "./index.d.ts",
+		"default": "./index.js"
+	},
+	"sideEffects": false,
+	"engines": {
+		"node": ">=20"
+	},
 	"scripts": {
 		"test": "xo && tsd",
 		"test-with-app": "xo && (cd test/fixture && ava) && tsd"
@@ -36,14 +45,14 @@
 		"await"
 	],
 	"dependencies": {
-		"serialize-error": "^8.1.0"
+		"serialize-error": "^11.0.3"
 	},
 	"devDependencies": {
-		"ava": "^2.2.0",
-		"electron": "^10",
-		"execa": "^5.0.0",
-		"tsd": "^0.14",
-		"xo": "^0.39.1"
+		"ava": "^6.1.2",
+		"electron": "^44.0.0",
+		"execa": "^8.0.1",
+		"tsd": "^0.31.0",
+		"xo": "^0.58.0"
 	},
 	"xo": {
 		"envs": [

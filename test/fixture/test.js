@@ -1,6 +1,6 @@
 import electron from 'electron';
 import test from 'ava';
-import execa from 'execa';
+import {execa} from 'execa';
 
 const run = async file => {
 	const {stdout} = await execa(electron, [file], {

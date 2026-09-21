@@ -35,7 +35,8 @@ ipc.answerRenderer('test-concurrency', async data => {
 
 	const mainWindow = new BrowserWindow({
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			contextIsolation: false
 		}
 	});
 

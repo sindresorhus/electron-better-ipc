@@ -1,7 +1,6 @@
-'use strict';
-const electron = require('electron');
-const {serializeError, deserializeError} = require('serialize-error');
-const util = require('./util.js');
+import electron from 'electron';
+import {serializeError, deserializeError} from 'serialize-error';
+import {getResponseChannels} from './util.js';
 
 const {ipcMain, BrowserWindow} = electron;
 const ipc = Object.create(ipcMain || {});
@@ -11,7 +10,7 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 		throw new Error('Browser window required');
 	}
 
-	const {sendChannel, dataChannel, errorChannel} = util.getRendererResponseChannels(channel);
+	const {sendChannel, dataChannel, errorChannel} = getResponseChannels(channel);
 
 	const cleanup = () => {
 		ipcMain.off(dataChannel, onData);
@@ -40,7 +39,7 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	const completeData = {
 		dataChannel,
 		errorChannel,
-		userData: data
+		userData: data,
 	};
 
 	if (browserWindow.webContents) {
@@ -48,13 +47,13 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 	}
 });
 
-ipc.callFocusedRenderer = async (...args) => {
+ipc.callFocusedRenderer = async (...arguments_) => {
 	const focusedWindow = BrowserWindow.getFocusedWindow();
 	if (!focusedWindow) {
 		throw new Error('No browser window in focus');
 	}
 
-	return ipc.callRenderer(focusedWindow, ...args);
+	return ipc.callRenderer(focusedWindow, ...arguments_);
 };
 
 ipc.answerRenderer = (browserWindowOrChannel, channelOrCallback, callbackOrNothing) => {
@@ -75,34 +74,22 @@ ipc.answerRenderer = (browserWindowOrChannel, channelOrCallback, callbackOrNothi
 		}
 	}
 
-	const sendChannel = util.getSendChannel(channel);
-
-	const listener = async (event, data) => {
+	ipcMain.handle(channel, async (event, data) => {
 		const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
 		if (window && window.id !== browserWindow.id) {
-			return;
+			return {error: serializeError(new Error('Message received for a different window'))};
 		}
-
-		const send = (channel, data) => {
-			if (!(browserWindow && browserWindow.isDestroyed())) {
-				event.sender.send(channel, data);
-			}
-		};
-
-		const {dataChannel, errorChannel, userData} = data;
 
 		try {
-			send(dataChannel, await callback(userData, browserWindow));
+			return {value: await callback(data, browserWindow)};
 		} catch (error) {
-			send(errorChannel, serializeError(error));
+			return {error: serializeError(error)};
 		}
-	};
-
-	ipcMain.on(sendChannel, listener);
+	});
 
 	return () => {
-		ipcMain.off(sendChannel, listener);
+		ipcMain.removeHandler(channel);
 	};
 };
 
@@ -114,4 +101,4 @@ ipc.sendToRenderers = (channel, data) => {
 	}
 };
 
-module.exports = ipc;
+export {ipc as ipcMain};
