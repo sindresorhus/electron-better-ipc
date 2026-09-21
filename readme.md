@@ -2,9 +2,17 @@
 
 > Simplified IPC communication for Electron apps
 
-The biggest benefit of this module over the [built-in IPC](https://electronjs.org/docs/api/ipc-main) is that it enables you to send a message and get the response back in the same call. This would usually require multiple IPC subscriptions.
+## Do you need this module?
 
-You can use this module directly in both the main and renderer process.
+The built-in [`ipcMain.handle()`](https://www.electronjs.org/docs/latest/api/ipc-main#ipcmainhandlechannel-listener) and [`ipcRenderer.invoke()`](https://www.electronjs.org/docs/latest/api/ipc-renderer#ipcrendererinvokechannel-args) already send a message and get the response back in the same call. Use them for the renderer to main direction.
+
+Use this module for what the built-in IPC does not do:
+
+- **Main to renderer.** Send a message from the main process to a renderer and `await` the reply. `webContents.send()` cannot do this. Without this module you would need multiple IPC subscriptions and two extra channels to build it by hand.
+- **Complete errors.** When a `handle` listener throws, the renderer gets an error with only the `message` property preserved ([electron#24427](https://github.com/electron/electron/issues/24427)). This module uses [`serialize-error`](https://github.com/sindresorhus/serialize-error), so the whole error object survives in both directions.
+- **The `BrowserWindow` that sent the message** is passed to your callback, and the answer methods return a function that removes the listener.
+
+You can use this module directly in both the main and renderer process. On the renderer side you must load it from a preload script with [`sandbox: false`](https://www.electronjs.org/docs/latest/tutorial/sandbox), because a sandboxed preload cannot load npm modules.
 
 ## Install
 
@@ -16,46 +24,41 @@ npm install electron-better-ipc
 
 ## Usage
 
-### Using the built-in IPC
+### Renderer to main
 
-Here, as an example, we use the built-in IPC to get an emoji by name in the renderer process from the main process. Notice how it requires coordinating multiple IPC subscriptions.
+Use the built-in IPC for this direction.
 
 ###### Main
 
 ```js
-const {ipcMain: ipc} = require('electron');
+const {ipcMain} = require('electron');
 
-ipc.on('get-emoji', async (event, emojiName) => {
-	const emoji = await getEmoji(emojiName);
-	event.sender.send('get-emoji-response', emoji);
+ipcMain.handle('get-emoji', async (event, emojiName) => {
+	return getEmoji(emojiName);
 });
 ```
 
 ###### Renderer
 
 ```js
-const {ipcRenderer: ipc} = require('electron');
+const {ipcRenderer} = require('electron');
 
-ipc.on('get-emoji-response', (event, emoji) => {
+(async () => {
+	const emoji = await ipcRenderer.invoke('get-emoji', 'unicorn');
 	console.log(emoji);
 	//=> '🦄'
-});
-
-ipc.send('get-emoji', 'unicorn');
+})();
 ```
 
-### Using this module
-
-As you can see below, this module makes it much simpler to handle the communication. You no longer need multiple IPC subscriptions and you can just `await` the response in the same call.
+This module provides `ipcMain.answerRenderer` and `ipcRenderer.callMain` for the same direction. Use them if you want the complete error object or the `BrowserWindow` in the callback.
 
 ###### Main
 
 ```js
 const {ipcMain: ipc} = require('electron-better-ipc');
 
-ipc.answerRenderer('get-emoji', async emojiName => {
-	const emoji = await getEmoji(emojiName);
-	return emoji;
+ipc.answerRenderer('get-emoji', async (emojiName, browserWindow) => {
+	return getEmoji(emojiName);
 });
 ```
 
@@ -71,18 +74,9 @@ const {ipcRenderer: ipc} = require('electron-better-ipc');
 })();
 ```
 
-Here we do the inverse of the above, we get an emoji by name in the main process from the renderer process:
+### Main to renderer
 
-###### Renderer
-
-```js
-const {ipcRenderer: ipc} = require('electron-better-ipc');
-
-ipc.answerMain('get-emoji', async emojiName => {
-	const emoji = await getEmoji(emojiName);
-	return emoji;
-});
-```
+The built-in IPC has no equal for this direction, since `webContents.send()` cannot wait for a reply.
 
 ###### Main
 
@@ -95,6 +89,18 @@ const {ipcMain: ipc} = require('electron-better-ipc');
 	//=> '🦄'
 })();
 ```
+
+###### Renderer
+
+```js
+const {ipcRenderer: ipc} = require('electron-better-ipc');
+
+ipc.answerMain('get-emoji', async emojiName => {
+	return getEmoji(emojiName);
+});
+```
+
+Use `ipcMain.callRenderer(browserWindow, channel, data)` to target one specific window instead of the focused one.
 
 ## API
 
