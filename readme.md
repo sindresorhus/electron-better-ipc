@@ -10,7 +10,7 @@ Use this module for what the built-in IPC does not do:
 
 - **Main to renderer.** Send a message from the main process to a renderer and `await` the reply. `webContents.send()` cannot do this. Without this module you would need multiple IPC subscriptions and two extra channels to build it by hand.
 - **Complete errors.** When a `handle` listener throws, the renderer gets an error with only the `message` property preserved ([electron#24427](https://github.com/electron/electron/issues/24427)). This module uses [`serialize-error`](https://github.com/sindresorhus/serialize-error), so the whole error object survives in both directions.
-- **The `BrowserWindow` that sent the message** is passed to your callback, and the answer methods return a function that removes the listener.
+- **The `BrowserWindow` that sent the message** is passed to your callback, and the answer methods return a function that removes the handler/listener.
 
 You can use this module in both the main and renderer process. On the renderer side, load it from a preload script that uses [`sandbox: false`](https://www.electronjs.org/docs/latest/tutorial/sandbox) and has the `.mjs` extension. A sandboxed preload cannot load npm modules, and preload scripts ignore `"type": "module"`, so an ES module preload must be `.mjs`.
 
@@ -20,7 +20,7 @@ You can use this module in both the main and renderer process. On the renderer s
 npm install electron-better-ipc
 ```
 
-*Requires Electron 28 or later, which is when Electron added ES module support.*
+*Requires Electron 44 or later.*
 
 This package is an ES module, so load it with `import`.
 
@@ -28,9 +28,11 @@ This package is an ES module, so load it with `import`.
 
 ### Renderer to main
 
+#### Built-in IPC
+
 Use the built-in IPC for this direction.
 
-###### Main
+##### Main (built-in)
 
 ```js
 import {ipcMain} from 'electron';
@@ -40,7 +42,7 @@ ipcMain.handle('get-emoji', async (event, emojiName) => {
 });
 ```
 
-###### Renderer
+##### Renderer (built-in)
 
 ```js
 import {ipcRenderer} from 'electron';
@@ -50,11 +52,13 @@ console.log(emoji);
 //=> '🦄'
 ```
 
-This module provides `ipcMain.answerRenderer` and `ipcRenderer.callMain` for the same direction. Use them if you want the complete error object or the `BrowserWindow` in the callback.
+#### This module (renderer to main)
+
+Use `ipcMain.answerRenderer` and `ipcRenderer.callMain` if you want the complete error object or the `BrowserWindow` in the callback.
 
 `answerRenderer` registers an `ipcMain.handle()` handler on the plain channel name, so only one handler can exist per channel and registering the same channel twice throws. Call the function it returns to remove the handler. `callMain` rejects when no handler is registered, and when a window-scoped handler is called by a different window.
 
-###### Main
+##### Main (answerRenderer)
 
 ```js
 import {ipcMain as ipc} from 'electron-better-ipc';
@@ -64,7 +68,7 @@ ipc.answerRenderer('get-emoji', async (emojiName, browserWindow) => {
 });
 ```
 
-###### Renderer
+##### Renderer (callMain)
 
 ```js
 import {ipcRenderer as ipc} from 'electron-better-ipc';
@@ -78,7 +82,11 @@ console.log(emoji);
 
 The built-in IPC has no equal for this direction, since `webContents.send()` cannot wait for a reply.
 
-###### Main
+#### This module (main to renderer)
+
+`ipcMain.callRenderer`, `ipcMain.callFocusedRenderer`, and `ipcRenderer.answerMain` cover it.
+
+##### Main (callFocusedRenderer)
 
 ```js
 import {ipcMain as ipc} from 'electron-better-ipc';
@@ -88,7 +96,7 @@ console.log(emoji);
 //=> '🦄'
 ```
 
-###### Renderer
+##### Renderer (answerMain)
 
 ```js
 import {ipcRenderer as ipc} from 'electron-better-ipc';
@@ -98,157 +106,177 @@ ipc.answerMain('get-emoji', async emojiName => {
 });
 ```
 
-Use `ipcMain.callRenderer(browserWindow, channel, data)` to target one specific window instead of the focused one.
+Use `ipcMain.callRenderer(browserWindow, channel, data?)` to target one specific window instead of the focused one.
 
 ## API
 
 The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in `ipc` module with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
 
-## Main process
+### Main process
 
-### ipcMain.callRenderer(browserWindow, channel, data?)
+#### ipcMain.callRenderer(browserWindow, channel, data?)
 
 Send a message to the given window.
 
 In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
 
+Rejects with `Browser window required` when `browserWindow` is not given.
+
+Rejects with `Browser window is destroyed` when the given window is destroyed or has no usable web contents.
+
+Rejects with `Channel required` when `channel` is not a non-empty string.
+
+The promise never settles if the renderer does not answer.
+
 Returns a `Promise<unknown>` with the reply from the renderer process.
 
-#### browserWindow
+##### browserWindow
 
 Type: `BrowserWindow`
 
 The window to send the message to.
 
-#### channel
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### data
+##### data
 
 Type: `unknown`
 
 The data to send to the receiver.
 
-### ipcMain.callFocusedRenderer(channel, data?)
+#### ipcMain.callFocusedRenderer(channel, data?)
 
 Send a message to the focused window, as determined by `electron.BrowserWindow.getFocusedWindow`.
 
 In the renderer process, use `ipcRenderer.answerMain` to reply to this message.
 
+Rejects with `No browser window in focus` when no window is focused. Use `ipcMain.callRenderer(browserWindow, channel, data?)` to target a window directly instead.
+
+It also rejects with `Browser window is destroyed` when the focused window is destroyed or has no usable web contents, and with `Channel required` when `channel` is not a non-empty string.
+
+The promise never settles if the renderer does not answer.
+
 Returns a `Promise<unknown>` with the reply from the renderer process.
 
-#### channel
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### data
+##### data
 
 Type: `unknown`
 
 The data to send to the receiver.
 
-### ipcMain.answerRenderer(channel, callback)
+#### ipcMain.answerRenderer(channel, callback)
 
 This method listens for a message from `ipcRenderer.callMain` defined in a renderer process and replies back.
 
 Registers an `ipcMain.handle()` handler on the plain channel name, so only one handler can exist per channel. Registering the same channel twice throws.
 
-Returns a function, that when called, removes the handler.
+Returns a function that, when called, removes the handler.
 
-#### channel
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### callback(data?, browserWindow)
+##### callback(data?, browserWindow)
 
 Type: `Function | AsyncFunction`
 
 The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
 
-### ipcMain.answerRenderer(browserWindow, channel, callback)
+#### ipcMain.answerRenderer(browserWindow, channel, callback)
 
 This method listens for a message from `ipcRenderer.callMain` defined in the given BrowserWindow's renderer process and replies back.
 
 The `ipcRenderer.callMain` promise rejects with `Message received for a different window` when a renderer other than the given window calls the channel.
 
-Returns a function, that when called, removes the handler.
+Throws with `Browser window required` when `browserWindow` is not given.
 
-#### browserWindow
+Returns a function that, when called, removes the handler.
+
+##### browserWindow
 
 Type: `BrowserWindow`
 
 The window for which to expect the message.
 
-#### channel
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### callback(data?, browserWindow)
+##### callback(data?, browserWindow)
 
 Type: `Function | AsyncFunction`
 
 The return value is sent back to the `ipcRenderer.callMain` in the renderer process.
 
-### ipcMain.sendToRenderers(channel, data?)
+#### ipcMain.sendToRenderers(channel, data?)
 
 Send a message to all renderer processes (windows).
 
-#### channel
+This is fire-and-forget: there is no reply and no error when there are no windows.
+
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### data
+##### data
 
 Type: `unknown`
 
 The data to send to the receiver.
 
-## Renderer process
+### Renderer process
 
-### ipcRenderer.callMain(channel, data?)
+#### ipcRenderer.callMain(channel, data?)
 
 Send a message to the main process.
 
 In the main process, use `ipcMain.answerRenderer` to reply to this message.
 
+Rejects when no handler is registered for the channel, and when a window-scoped handler is called by a different window.
+
 Returns a `Promise<unknown>` with the reply from the main process.
 
-#### channel
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### data
+##### data
 
 Type: `unknown`
 
 The data to send to the receiver.
 
-### ipcRenderer.answerMain(channel, callback)
+#### ipcRenderer.answerMain(channel, callback)
 
 This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
 
-Returns a function, that when called, removes the listener.
+Returns a function that, when called, removes the listener.
 
-#### channel
+##### channel
 
 Type: `string`
 
 The channel to send the message on.
 
-#### callback(data?)
+##### callback(data?)
 
 Type: `Function | AsyncFunction`
 

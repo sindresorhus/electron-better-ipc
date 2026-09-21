@@ -5,11 +5,7 @@
 	"license": "MIT",
 	"repository": "sindresorhus/electron-better-ipc",
 	"funding": "https://github.com/sponsors/sindresorhus",
-	"author": {
-		"name": "Sindre Sorhus",
-		"email": "sindresorhus@gmail.com",
-		"url": "https://sindresorhus.com"
-	},
+	"author": "Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
 	"type": "module",
 	"exports": {
 		"types": "./index.d.ts",
@@ -17,7 +13,7 @@
 	},
 	"sideEffects": false,
 	"engines": {
-		"node": ">=20"
+		"node": ">=22"
 	},
 	"scripts": {
 		"test": "xo && tsd",
@@ -45,20 +41,16 @@
 		"await"
 	],
 	"dependencies": {
-		"serialize-error": "^11.0.3"
+		"serialize-error": "^13.0.1"
 	},
 	"devDependencies": {
-		"ava": "^6.1.2",
+		"ava": "^8.0.1",
 		"electron": "^44.0.0",
-		"execa": "^8.0.1",
-		"tsd": "^0.31.0",
-		"xo": "^0.58.0"
+		"execa": "^10.0.1",
+		"tsd": "^0.33.0",
+		"xo": "^5.0.1"
 	},
 	"xo": {
-		"envs": [
-			"node",
-			"browser"
-		],
 		"ignores": [
 			"test/fixture"
 		]

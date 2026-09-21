@@ -5,9 +5,22 @@ import {getResponseChannels} from './util.js';
 const {ipcMain, BrowserWindow} = electron;
 const ipc = Object.create(ipcMain || {});
 
-ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, reject) => {
+ipc.callRenderer = (browserWindow, channel, data) => {
+	const {promise, resolve, reject} = Promise.withResolvers();
+
 	if (!browserWindow) {
-		throw new Error('Browser window required');
+		reject(new Error('Browser window required'));
+		return promise;
+	}
+
+	if (typeof channel !== 'string' || channel.length === 0) {
+		reject(new Error('Channel required'));
+		return promise;
+	}
+
+	if (!browserWindow.webContents || browserWindow.isDestroyed?.() || browserWindow.webContents.isDestroyed?.()) {
+		reject(new Error('Browser window is destroyed'));
+		return promise;
 	}
 
 	const {sendChannel, dataChannel, errorChannel} = getResponseChannels(channel);
@@ -17,35 +30,46 @@ ipc.callRenderer = (browserWindow, channel, data) => new Promise((resolve, rejec
 		ipcMain.off(errorChannel, onError);
 	};
 
+	const targetId = browserWindow.id;
+	const isFromTargetWindow = event => {
+		const senderWindow = BrowserWindow.fromWebContents(event.sender);
+		return targetId !== undefined && senderWindow !== undefined && senderWindow !== null && senderWindow.id === targetId;
+	};
+
 	const onData = (event, result) => {
-		const window = BrowserWindow.fromWebContents(event.sender);
-		if (window.id === browserWindow.id) {
-			cleanup();
-			resolve(result);
+		if (!isFromTargetWindow(event)) {
+			return;
 		}
+
+		cleanup();
+		resolve(result);
 	};
 
 	const onError = (event, error) => {
-		const window = BrowserWindow.fromWebContents(event.sender);
-		if (window.id === browserWindow.id) {
-			cleanup();
-			reject(deserializeError(error));
+		if (!isFromTargetWindow(event)) {
+			return;
 		}
+
+		cleanup();
+		reject(deserializeError(error));
 	};
 
 	ipcMain.on(dataChannel, onData);
 	ipcMain.on(errorChannel, onError);
 
-	const completeData = {
-		dataChannel,
-		errorChannel,
-		userData: data,
-	};
-
-	if (browserWindow.webContents) {
-		browserWindow.webContents.send(sendChannel, completeData);
+	try {
+		browserWindow.webContents.send(sendChannel, {
+			dataChannel,
+			errorChannel,
+			userData: data,
+		});
+	} catch (error) {
+		cleanup();
+		reject(error);
 	}
-});
+
+	return promise;
+};
 
 ipc.callFocusedRenderer = async (...arguments_) => {
 	const focusedWindow = BrowserWindow.getFocusedWindow();
@@ -57,7 +81,7 @@ ipc.callFocusedRenderer = async (...arguments_) => {
 };
 
 ipc.answerRenderer = (browserWindowOrChannel, channelOrCallback, callbackOrNothing) => {
-	let window;
+	let expectedWindow;
 	let channel;
 	let callback;
 
@@ -65,24 +89,24 @@ ipc.answerRenderer = (browserWindowOrChannel, channelOrCallback, callbackOrNothi
 		channel = browserWindowOrChannel;
 		callback = channelOrCallback;
 	} else {
-		window = browserWindowOrChannel;
+		expectedWindow = browserWindowOrChannel;
 		channel = channelOrCallback;
 		callback = callbackOrNothing;
 
-		if (!window) {
+		if (!expectedWindow) {
 			throw new Error('Browser window required');
 		}
 	}
 
 	ipcMain.handle(channel, async (event, data) => {
-		const browserWindow = BrowserWindow.fromWebContents(event.sender);
+		const senderWindow = BrowserWindow.fromWebContents(event.sender);
 
-		if (window && window.id !== browserWindow.id) {
+		if (expectedWindow && (!senderWindow || expectedWindow.id !== senderWindow.id)) {
 			return {error: serializeError(new Error('Message received for a different window'))};
 		}
 
 		try {
-			return {value: await callback(data, browserWindow)};
+			return {value: await callback(data, senderWindow)};
 		} catch (error) {
 			return {error: serializeError(error)};
 		}
