@@ -1,5 +1,6 @@
 import electron from 'electron';
-import test from 'ava';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
 import {execa} from 'execa';
 
 const run = async file => {
@@ -10,7 +11,7 @@ const run = async file => {
 	return stdout.trim();
 };
 
-test('main', async t => {
+test('main', async () => {
 	const stdout = await run('index.js');
 
 	const logs = [
@@ -21,7 +22,7 @@ test('main', async t => {
 
 	console.log(logs);
 
-	t.deepEqual(logs, [
+	assert.deepEqual(logs, [
 		'test-concurrency:main:data-from-renderer: data-1',
 		'test-concurrency:main:data-from-renderer: data-2',
 		'test-concurrency:renderer:answer-from-main-1: test-concurrency:main:answer:data-1',

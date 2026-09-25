@@ -85,6 +85,6 @@ ipcRenderer.answerMain<string, string>('get-emoji', emojiName => {
 });
 
 expectType<() => void>(detachListener2);
-detachListener();
+detachListener2();
 
 expectError(ipcRenderer.callRenderer);

@@ -17,7 +17,7 @@
 	},
 	"scripts": {
 		"test": "xo && tsd",
-		"test-with-app": "xo && (cd test/fixture && ava) && tsd"
+		"test-with-app": "xo && (cd test/fixture && node --test) && tsd"
 	},
 	"files": [
 		"index.js",
@@ -44,8 +44,7 @@
 		"serialize-error": "^13.0.1"
 	},
 	"devDependencies": {
-		"ava": "^8.0.1",
-		"electron": "^44.0.0",
+		"electron": "^44.4.5",
 		"execa": "^10.0.1",
 		"tsd": "^0.33.0",
 		"xo": "^5.0.1"

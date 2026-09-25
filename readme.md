@@ -110,7 +110,7 @@ Use `ipcMain.callRenderer(browserWindow, channel, data?)` to target one specific
 
 ## API
 
-The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in `ipc` module with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
+The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in ones with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
 
 ### Main process
 
