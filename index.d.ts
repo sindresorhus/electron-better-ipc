@@ -181,5 +181,136 @@ export type RendererProcessIpc = {
 	): () => void;
 } & IpcRenderer;
 
+// Not `Parameters`, so that `ipcMain`/`ipcRenderer` stay assignable when a side has no channels.
+type DataArguments<Handler> = Handler extends (...data: infer Arguments extends [data?: unknown]) => unknown ? Arguments : never;
+
+type CallArguments<Schema> = {[Channel in keyof Schema & string]: [channel: Channel, ...data: DataArguments<Schema[Channel]>]}[keyof Schema & string];
+
+type Channels<Schema> = {[Channel in keyof Schema]: (data: any) => unknown};
+
+type Reply<Handler extends (data: any) => unknown> = Awaited<ReturnType<Handler>>;
+
+type Answer<Handler extends (data: any) => unknown> = Reply<Handler> | PromiseLike<Reply<Handler>>;
+
+type SingleChannel<Channel, AllChannels = Channel> = Channel extends unknown ? [AllChannels] extends [Channel] ? Channel : never : never;
+
+declare const ipcSchema: unique symbol;
+
+type Contracts<Schema extends Channels<Schema>> = {[Channel in keyof Schema & string]: [channel: Channel, data: DataArguments<Schema[Channel]>, reply: Reply<Schema[Channel]>]}[keyof Schema & string];
+
+// Keep schemas invariant without requiring a runtime property on the untyped IPC objects.
+type IpcSchema<Schema> = {
+	readonly [ipcSchema]?: (schema: Schema) => Schema;
+};
+
+/**
+A strictly typed version of `ipcMain`.
+
+Describe each channel as a method that takes at most one parameter, the data. `MainChannels` are the channels the main process answers (`answerRenderer`/`callMain`). `RendererChannels` are the channels the renderer process answers (`answerMain`/`callRenderer`).
+
+Use `Record<never, never>` for a side that answers no channels.
+
+Answer registrations require a single channel key. Narrow union channels before registering a callback.
+
+Typed IPC objects require matching channel contracts when assigned to each other.
+
+The types are not checked at runtime. `sendToRenderers` is not strictly typed, since it sends a plain event that is not answered.
+
+@example
+```
+import {ipcMain, type TypedMainProcessIpc} from 'electron-better-ipc';
+
+type MainChannels = {
+	'get-emoji'(name: string): string;
+};
+
+type RendererChannels = {
+	'get-title'(): string;
+};
+
+const ipc: TypedMainProcessIpc<MainChannels, RendererChannels> = ipcMain;
+
+ipc.answerRenderer('get-emoji', async emojiName => getEmoji(emojiName));
+
+const title = await ipc.callFocusedRenderer('get-title');
+```
+*/
+export type TypedMainProcessIpc<
+	MainChannels extends Channels<MainChannels>,
+	RendererChannels extends Channels<RendererChannels>,
+> = {
+	callRenderer<Arguments extends CallArguments<RendererChannels>>(
+		browserWindow: BrowserWindow,
+		...arguments_: Arguments
+	): Promise<Reply<RendererChannels[Arguments[0]]>>;
+
+	callFocusedRenderer<Arguments extends CallArguments<RendererChannels>>(
+		...arguments_: Arguments
+	): Promise<Reply<RendererChannels[Arguments[0]]>>;
+
+	answerRenderer<Channel extends keyof MainChannels & string>(
+		channel: Channel & SingleChannel<Channel>,
+		callback: (
+			data: Parameters<MainChannels[Channel]>[0],
+			browserWindow: BrowserWindow,
+		) => Answer<MainChannels[Channel]>
+	): () => void;
+
+	answerRenderer<Channel extends keyof MainChannels & string>(
+		browserWindow: BrowserWindow,
+		channel: Channel & SingleChannel<Channel>,
+		callback: (
+			data: Parameters<MainChannels[Channel]>[0],
+			browserWindow: BrowserWindow,
+		) => Answer<MainChannels[Channel]>
+	): () => void;
+} & IpcSchema<[Contracts<MainChannels>, Contracts<RendererChannels>]> & Pick<MainProcessIpc, 'sendToRenderers'> & IpcMain;
+
+/**
+A strictly typed version of `ipcRenderer`.
+
+Describe each channel as a method that takes at most one parameter, the data. `MainChannels` are the channels the main process answers (`answerRenderer`/`callMain`). `RendererChannels` are the channels the renderer process answers (`answerMain`/`callRenderer`).
+
+Use `Record<never, never>` for a side that answers no channels.
+
+Answer registrations require a single channel key. Narrow union channels before registering a callback.
+
+Typed IPC objects require matching channel contracts when assigned to each other.
+
+The types are not checked at runtime.
+
+@example
+```
+import {ipcRenderer, type TypedRendererProcessIpc} from 'electron-better-ipc';
+
+type MainChannels = {
+	'get-emoji'(name: string): string;
+};
+
+type RendererChannels = {
+	'get-title'(): string;
+};
+
+const ipc: TypedRendererProcessIpc<MainChannels, RendererChannels> = ipcRenderer;
+
+ipc.answerMain('get-title', () => document.title);
+
+const emoji = await ipc.callMain('get-emoji', 'unicorn');
+```
+*/
+export type TypedRendererProcessIpc<
+	MainChannels extends Channels<MainChannels>,
+	RendererChannels extends Channels<RendererChannels>,
+> = {
+	callMain<Arguments extends CallArguments<MainChannels>>(
+		...arguments_: Arguments
+	): Promise<Reply<MainChannels[Arguments[0]]>>;
+
+	answerMain<Channel extends keyof RendererChannels & string>(
+		channel: Channel & SingleChannel<Channel>,
+		callback: (data: Parameters<RendererChannels[Channel]>[0]) => Answer<RendererChannels[Channel]>
+	): () => void;
+} & IpcSchema<[Contracts<MainChannels>, Contracts<RendererChannels>]> & IpcRenderer;
+
 export const ipcMain: MainProcessIpc;
 export const ipcRenderer: RendererProcessIpc;

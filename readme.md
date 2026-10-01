@@ -108,6 +108,58 @@ ipc.answerMain('get-emoji', async emojiName => {
 
 Use `ipcMain.callRenderer(browserWindow, channel, data?)` to target one specific window instead of the focused one.
 
+### TypeScript
+
+Use `TypedMainProcessIpc` and `TypedRendererProcessIpc` to get strictly typed channels. Describe each channel as a method that takes at most one parameter, the data, and share these types between the main and renderer code.
+
+`MainChannels` are the channels the main process answers (`answerRenderer`/`callMain`). `RendererChannels` are the channels the renderer process answers (`answerMain`/`callRenderer`). Use `Record<never, never>` for a side that answers no channels.
+
+Answer registrations require a single channel key. Narrow union channels before registering a callback.
+
+Typed IPC objects require matching channel contracts when assigned to each other.
+
+The types are not checked at runtime.
+
+#### Shared (channels.ts)
+
+```ts
+export type MainChannels = {
+	'get-emoji'(name: string): string;
+};
+
+export type RendererChannels = {
+	'get-title'(): string;
+};
+```
+
+#### Main (TypedMainProcessIpc)
+
+```ts
+import {ipcMain, type TypedMainProcessIpc} from 'electron-better-ipc';
+import type {MainChannels, RendererChannels} from './channels.js';
+
+const ipc: TypedMainProcessIpc<MainChannels, RendererChannels> = ipcMain;
+
+ipc.answerRenderer('get-emoji', async emojiName => getEmoji(emojiName));
+
+const title = await ipc.callFocusedRenderer('get-title');
+```
+
+`sendToRenderers` is not strictly typed, since it sends a plain event that is not answered.
+
+#### Renderer (TypedRendererProcessIpc)
+
+```ts
+import {ipcRenderer, type TypedRendererProcessIpc} from 'electron-better-ipc';
+import type {MainChannels, RendererChannels} from './channels.js';
+
+const ipc: TypedRendererProcessIpc<MainChannels, RendererChannels> = ipcRenderer;
+
+ipc.answerMain('get-title', () => document.title);
+
+const emoji = await ipc.callMain('get-emoji', 'unicorn');
+```
+
 ## API
 
 The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-in ones with some added methods, so you can use them as a replacement for `electron.ipcMain`/`electron.ipcRenderer`.
