@@ -280,6 +280,19 @@ Send a message to all renderer processes (windows).
 
 This is fire-and-forget: there is no reply and no error when there are no windows.
 
+The message is sent on the plain channel name, like `webContents.send()`. In the renderer process, use `ipcRenderer.on(channel, (event, data) => {})` to receive it. `ipcRenderer.answerMain` does not receive it.
+
+To get a reply from every window, use `ipcMain.callRenderer` for each window instead. The promise never settles if a window does not answer.
+
+```js
+import {BrowserWindow} from 'electron';
+import {ipcMain as ipc} from 'electron-better-ipc';
+
+ipc.sendToRenderers('theme-changed', 'dark');
+
+const titles = await Promise.all(BrowserWindow.getAllWindows().map(browserWindow => ipc.callRenderer(browserWindow, 'get-title')));
+```
+
 ##### channel
 
 Type: `string`
@@ -318,7 +331,9 @@ The data to send to the receiver.
 
 #### ipcRenderer.answerMain(channel, callback)
 
-This method listens for a message from `ipcMain.callRenderer` defined in the main process and replies back.
+This method listens for a message from `ipcMain.callRenderer` or `ipcMain.callFocusedRenderer` defined in the main process and replies back.
+
+It does not receive messages from `ipcMain.sendToRenderers`. Use `ipcRenderer.on` for those.
 
 Returns a function that, when called, removes the listener.
 
