@@ -39,3 +39,5 @@ ipc.answerMain('test-focused', data => {
 ipc.callMain('test-specific-window', 'data-1').then(answer => {
 	ipcRenderer.send('log', 'test-specific-window:renderer:answer-from-main: ' + answer);
 });
+
+ipc.answerMain('test-signal-answered', () => 'test-signal-answered:renderer:answer-data');

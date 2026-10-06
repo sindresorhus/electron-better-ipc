@@ -26,6 +26,13 @@ expectType<Promise<string>>(
 expectType<Promise<string>>(
 	ipcMain.callRenderer(browserWindow, 'get-emoji', 'unicorn'),
 );
+expectType<Promise<unknown>>(
+	ipcMain.callRenderer(browserWindow, 'get-emoji', undefined, {signal: AbortSignal.timeout(1000)}),
+);
+expectType<Promise<unknown>>(
+	ipcMain.callFocusedRenderer('get-emoji', 'unicorn', {signal: AbortSignal.timeout(1000)}),
+);
+expectError(ipcMain.callRenderer(browserWindow, 'get-emoji', 'unicorn', {signal: 1}));
 
 const detachListener = ipcMain.answerRenderer('get-emoji', emojiName => {
 	expectType<unknown>(emojiName);
@@ -106,6 +113,7 @@ interface MainChannels {
 type RendererChannels = {
 	'get-title'(): string;
 	'set-title': (title: string) => boolean;
+	'set-zoom'(zoom?: number): void;
 };
 
 const typedIpcMain: TypedMainProcessIpc<MainChannels, RendererChannels> = ipcMain;
@@ -118,6 +126,29 @@ expectError(typedIpcMain.callFocusedRenderer('get-title', 'unicorn'));
 expectType<Promise<boolean>>(typedIpcMain.callRenderer(browserWindow, 'set-title', 'Unicorn'));
 expectError(typedIpcMain.callFocusedRenderer('set-title', 1));
 expectError(typedIpcMain.callRenderer(browserWindow, 'set-title'));
+
+const signal = AbortSignal.timeout(1000);
+expectType<Promise<string>>(typedIpcMain.callRenderer(browserWindow, 'get-title', undefined, {signal}));
+expectType<Promise<string>>(typedIpcMain.callFocusedRenderer('get-title', undefined, {signal}));
+expectType<Promise<boolean>>(typedIpcMain.callRenderer(browserWindow, 'set-title', 'Unicorn', {signal}));
+expectType<Promise<boolean>>(typedIpcMain.callFocusedRenderer('set-title', 'Unicorn', {}));
+expectError(typedIpcMain.callFocusedRenderer('get-title', {signal}));
+expectError(typedIpcMain.callFocusedRenderer('get-title', 'unicorn', {signal}));
+expectError(typedIpcMain.callRenderer(browserWindow, 'set-title', undefined, {signal}));
+expectError(typedIpcMain.callRenderer(browserWindow, 'set-title', 1, {signal}));
+expectType<Promise<void>>(typedIpcMain.callRenderer(browserWindow, 'set-zoom', 1, {signal}));
+expectType<Promise<void>>(typedIpcMain.callRenderer(browserWindow, 'set-zoom', undefined, {signal}));
+expectType<Promise<void>>(typedIpcMain.callRenderer(browserWindow, 'set-zoom'));
+expectError(typedIpcMain.callRenderer(browserWindow, 'set-zoom', {signal}));
+expectError(typedIpcMain.callRenderer(browserWindow, 'set-title', 'Unicorn', {signal: 1}));
+expectError(typedIpcMain.callRenderer(browserWindow, 'get-title', undefined, {signal}, 1));
+
+const forwardedOptions: {signal?: AbortSignal} | undefined = Math.random() > 0.5 ? {signal} : undefined;
+expectType<Promise<boolean>>(typedIpcMain.callFocusedRenderer('set-title', 'Unicorn', forwardedOptions));
+
+type RendererArgumentsWithOptions = ['get-title', undefined, {signal: AbortSignal}] | ['set-title', string, {signal: AbortSignal}];
+const rendererArgumentsWithOptions: RendererArgumentsWithOptions = Math.random() > 0.5 ? ['get-title', undefined, {signal}] : ['set-title', 'Unicorn', {signal}];
+expectType<Promise<string | boolean>>(typedIpcMain.callRenderer(browserWindow, ...rendererArgumentsWithOptions));
 
 expectType<() => void>(typedIpcMain.answerRenderer('get-emoji', (emojiName, senderWindow) => {
 	expectType<string>(emojiName);
@@ -160,6 +191,8 @@ expectError(typedIpcMain.callRenderer(browserWindow, rendererChannel, 'Unicorn')
 expectError(typedIpcMain.callRenderer(browserWindow, rendererChannel));
 expectError(typedIpcMain.callFocusedRenderer(rendererChannel, 'Unicorn'));
 expectError(typedIpcMain.callFocusedRenderer(rendererChannel));
+expectError(typedIpcMain.callFocusedRenderer(rendererChannel, 'Unicorn', {signal}));
+expectError(typedIpcMain.callFocusedRenderer(rendererChannel, undefined, {signal}));
 
 // Union channels must preserve the relationship with their replies.
 const mainReplyChannel = Math.random() > 0.5 ? 'get-emoji' : 'get-count';

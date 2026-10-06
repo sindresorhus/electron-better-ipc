@@ -166,7 +166,7 @@ The module exports `ipcMain` and `ipcRenderer` objects which enhance the built-i
 
 ### Main process
 
-#### ipcMain.callRenderer(browserWindow, channel, data?)
+#### ipcMain.callRenderer(browserWindow, channel, data?, options?)
 
 Send a message to the given window.
 
@@ -178,7 +178,7 @@ Rejects with `Browser window is destroyed` when the given window is destroyed or
 
 Rejects with `Channel required` when `channel` is not a non-empty string.
 
-The promise never settles if the renderer does not answer.
+The promise never settles if the renderer does not answer. Use the [`signal`](#signal) option to stop waiting.
 
 Returns a `Promise<unknown>` with the reply from the renderer process.
 
@@ -200,7 +200,27 @@ Type: `unknown`
 
 The data to send to the receiver.
 
-#### ipcMain.callFocusedRenderer(channel, data?)
+##### options
+
+Type: `object`
+
+###### signal
+
+Type: [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
+
+Cancel the call.
+
+When the signal aborts, the promise rejects with `signal.reason` and the reply listeners are removed. The renderer still runs its `answerMain` callback, but the reply is ignored.
+
+Use [`AbortSignal.timeout()`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static) to stop waiting after some time. Pass `undefined` as `data` if the channel takes no data.
+
+```js
+import {ipcMain as ipc} from 'electron-better-ipc';
+
+const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn', {signal: AbortSignal.timeout(5000)});
+```
+
+#### ipcMain.callFocusedRenderer(channel, data?, options?)
 
 Send a message to the focused window, as determined by `electron.BrowserWindow.getFocusedWindow`.
 
@@ -210,7 +230,7 @@ Rejects with `No browser window in focus` when no window is focused. Use `ipcMai
 
 It also rejects with `Browser window is destroyed` when the focused window is destroyed or has no usable web contents, and with `Channel required` when `channel` is not a non-empty string.
 
-The promise never settles if the renderer does not answer.
+The promise never settles if the renderer does not answer. Use the [`signal`](#signal) option to stop waiting.
 
 Returns a `Promise<unknown>` with the reply from the renderer process.
 
@@ -225,6 +245,12 @@ The channel to send the message on.
 Type: `unknown`
 
 The data to send to the receiver.
+
+##### options
+
+Type: `object`
+
+The same options as [`ipcMain.callRenderer`](#options).
 
 #### ipcMain.answerRenderer(channel, callback)
 
@@ -282,7 +308,7 @@ This is fire-and-forget: there is no reply and no error when there are no window
 
 The message is sent on the plain channel name, like `webContents.send()`. In the renderer process, use `ipcRenderer.on(channel, (event, data) => {})` to receive it. `ipcRenderer.answerMain` does not receive it.
 
-To get a reply from every window, use `ipcMain.callRenderer` for each window instead. The promise never settles if a window does not answer.
+To get a reply from every window, use `ipcMain.callRenderer` for each window instead. Its promise never settles if a window does not answer, unless you pass a [`signal`](#signal).
 
 ```js
 import {BrowserWindow} from 'electron';

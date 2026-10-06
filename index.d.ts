@@ -1,5 +1,23 @@
 import {type BrowserWindow, type IpcMain, type IpcRenderer} from 'electron';
 
+export type CallRendererOptions = {
+	/**
+	An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) to cancel the call.
+
+	When the signal aborts, the promise rejects with `signal.reason` and the reply listeners are removed. The renderer still runs its `answerMain` callback, but the reply is ignored.
+
+	Use [`AbortSignal.timeout()`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static) to stop waiting after some time. Pass `undefined` as `data` if the channel takes no data.
+
+	@example
+	```
+	import {ipcMain as ipc} from 'electron-better-ipc';
+
+	const emoji = await ipc.callFocusedRenderer('get-emoji', 'unicorn', {signal: AbortSignal.timeout(5000)});
+	```
+	*/
+	readonly signal?: AbortSignal;
+};
+
 export type MainProcessIpc = {
 	/**
 	Send a message to the given window.
@@ -12,11 +30,12 @@ export type MainProcessIpc = {
 
 	Rejects with `Channel required` when `channel` is not a non-empty string.
 
-	The promise never settles if the renderer does not answer.
+	The promise never settles if the renderer does not answer. Use the `signal` option to stop waiting.
 
 	@param browserWindow - The window to send the message to.
 	@param channel - The channel to send the message on.
 	@param data - The data to send to the receiver.
+	@param options - Options for the call. See `CallRendererOptions`.
 	@returns The reply from the renderer process.
 
 	@example
@@ -34,7 +53,8 @@ export type MainProcessIpc = {
 	callRenderer<DataType, ReturnType = unknown>(
 		browserWindow: BrowserWindow,
 		channel: string,
-		data?: DataType
+		data?: DataType,
+		options?: CallRendererOptions
 	): Promise<ReturnType>;
 
 	/**
@@ -46,10 +66,11 @@ export type MainProcessIpc = {
 
 	It also rejects with `Browser window is destroyed` when the focused window is destroyed or has no usable web contents, and with `Channel required` when `channel` is not a non-empty string.
 
-	The promise never settles if the renderer does not answer.
+	The promise never settles if the renderer does not answer. Use the `signal` option to stop waiting.
 
 	@param channel - The channel to send the message on.
 	@param data - The data to send to the receiver.
+	@param options - Options for the call. See `CallRendererOptions`.
 	@returns The reply from the renderer process.
 
 	@example
@@ -63,7 +84,8 @@ export type MainProcessIpc = {
 	*/
 	callFocusedRenderer<DataType, ReturnType = unknown>(
 		channel: string,
-		data?: DataType
+		data?: DataType,
+		options?: CallRendererOptions
 	): Promise<ReturnType>;
 
 	/**
@@ -131,7 +153,7 @@ export type MainProcessIpc = {
 
 	The message is sent on the plain channel name, like `webContents.send()`. In the renderer process, use `ipcRenderer.on(channel, (event, data) => {})` to receive it. `ipcRenderer.answerMain` does not receive it.
 
-	To get a reply from every window, use `ipcMain.callRenderer` for each window instead. The promise never settles if a window does not answer.
+	To get a reply from every window, use `ipcMain.callRenderer` for each window instead. Its promise never settles if a window does not answer, unless you pass a `signal`.
 
 	@param channel - The channel to send the message on.
 	@param data - The data to send to the receiver.
@@ -202,6 +224,13 @@ type DataArguments<Handler> = Handler extends (...data: infer Arguments extends 
 
 type CallArguments<Schema> = {[Channel in keyof Schema & string]: [channel: Channel, ...data: DataArguments<Schema[Channel]>]}[keyof Schema & string];
 
+// The options come after the data, so channels without data take `undefined` in its place.
+type CallRendererData<Handler> = DataArguments<Handler>['length'] extends 0 ? undefined : DataArguments<Handler>[0];
+
+type CallRendererArguments<Schema> = CallArguments<Schema> | {
+	[Channel in keyof Schema & string]: [channel: Channel, data: CallRendererData<Schema[Channel]>, options?: CallRendererOptions];
+}[keyof Schema & string];
+
 type Channels<Schema> = {[Channel in keyof Schema]: (data: any) => unknown};
 
 type Reply<Handler extends (data: any) => unknown> = Awaited<ReturnType<Handler>>;
@@ -255,12 +284,12 @@ export type TypedMainProcessIpc<
 	MainChannels extends Channels<MainChannels>,
 	RendererChannels extends Channels<RendererChannels>,
 > = {
-	callRenderer<Arguments extends CallArguments<RendererChannels>>(
+	callRenderer<Arguments extends CallRendererArguments<RendererChannels>>(
 		browserWindow: BrowserWindow,
 		...arguments_: Arguments
 	): Promise<Reply<RendererChannels[Arguments[0]]>>;
 
-	callFocusedRenderer<Arguments extends CallArguments<RendererChannels>>(
+	callFocusedRenderer<Arguments extends CallRendererArguments<RendererChannels>>(
 		...arguments_: Arguments
 	): Promise<Reply<RendererChannels[Arguments[0]]>>;
 

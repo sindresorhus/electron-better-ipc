@@ -5,7 +5,7 @@ import {getResponseChannels} from './util.js';
 const {ipcMain, BrowserWindow} = electron;
 const ipc = Object.create(ipcMain || {});
 
-ipc.callRenderer = (browserWindow, channel, data) => {
+ipc.callRenderer = (browserWindow, channel, data, {signal} = {}) => {
 	const {promise, resolve, reject} = Promise.withResolvers();
 
 	if (!browserWindow) {
@@ -23,11 +23,17 @@ ipc.callRenderer = (browserWindow, channel, data) => {
 		return promise;
 	}
 
+	if (signal?.aborted) {
+		reject(signal.reason);
+		return promise;
+	}
+
 	const {sendChannel, dataChannel, errorChannel} = getResponseChannels(channel);
 
 	const cleanup = () => {
 		ipcMain.off(dataChannel, onData);
 		ipcMain.off(errorChannel, onError);
+		signal?.removeEventListener('abort', onAbort);
 	};
 
 	const targetId = browserWindow.id;
@@ -54,8 +60,14 @@ ipc.callRenderer = (browserWindow, channel, data) => {
 		reject(deserializeError(error));
 	};
 
+	const onAbort = () => {
+		cleanup();
+		reject(signal.reason);
+	};
+
 	ipcMain.on(dataChannel, onData);
 	ipcMain.on(errorChannel, onError);
+	signal?.addEventListener('abort', onAbort, {once: true});
 
 	try {
 		browserWindow.webContents.send(sendChannel, {

@@ -1,5 +1,6 @@
 'use strict';
 const path = require('path');
+const {getEventListeners} = require('events');
 const {app, BrowserWindow, ipcMain} = require('electron');
 const {ipcMain: ipc} = require('../../index.js');
 const {countDataAndErrorListeners} = require('./util.js');
@@ -52,6 +53,23 @@ ipc.answerRenderer('test-concurrency', async data => {
 
 	const answerFromFocusedRenderer = await ipc.callFocusedRenderer('test-focused', 'optional-data');
 	console.log('test-focused:main:answer-from-renderer:', answerFromFocusedRenderer);
+
+	try {
+		await ipc.callRenderer(mainWindow, 'test-unanswered', undefined, {signal: AbortSignal.timeout(100)});
+	} catch (error) {
+		console.log('test-signal:main:error:', error.name);
+	}
+
+	try {
+		await ipc.callFocusedRenderer('test-unanswered', undefined, {signal: AbortSignal.abort(new Error('test-signal-aborted:main:reason'))});
+	} catch (error) {
+		console.log('test-signal-aborted:main:error:', error.message);
+	}
+
+	const controller = new AbortController();
+	const answerWithSignal = await ipc.callRenderer(mainWindow, 'test-signal-answered', undefined, {signal: controller.signal});
+	console.log('test-signal-answered:main:answer-from-renderer:', answerWithSignal);
+	console.log('test-signal-answered:main:abort-listeners:', getEventListeners(controller.signal, 'abort').length);
 
 	try {
 		await ipc.callRenderer();
