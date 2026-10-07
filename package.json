@@ -11,7 +11,10 @@
 		"types": "./index.d.ts",
 		"default": "./index.js"
 	},
-	"sideEffects": false,
+	"sideEffects": [
+		"./source/main.js",
+		"./source/renderer.js"
+	],
 	"engines": {
 		"node": ">=22"
 	},

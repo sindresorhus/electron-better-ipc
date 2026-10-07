@@ -33,6 +33,10 @@ expectType<Promise<unknown>>(
 	ipcMain.callFocusedRenderer('get-emoji', 'unicorn', {signal: AbortSignal.timeout(1000)}),
 );
 expectError(ipcMain.callRenderer(browserWindow, 'get-emoji', 'unicorn', {signal: 1}));
+expectType<Promise<unknown>>(
+	ipcMain.callRenderer(browserWindow.webContents, 'get-emoji', 'unicorn'),
+);
+expectError(ipcMain.callRenderer(1, 'get-emoji'));
 
 const detachListener = ipcMain.answerRenderer('get-emoji', emojiName => {
 	expectType<unknown>(emojiName);
@@ -46,14 +50,12 @@ ipcMain.answerRenderer<string>('get-emoji', async emojiName => {
 	expectType<string>(emojiName);
 	return '🦄';
 });
-ipcMain.answerRenderer<string, string>('get-emoji', async emojiName => {
+ipcMain.answerRenderer<string, string>('get-emoji', async (emojiName, senderWindow) => {
 	expectType<string>(emojiName);
+	expectType<BrowserWindow | undefined>(senderWindow);
 	return '🦄';
 });
-ipcMain.answerRenderer<string, string>(browserWindow, 'get-emoji', async emojiName => {
-	expectType<string>(emojiName);
-	return '🦄';
-});
+expectError(ipcMain.answerRenderer(browserWindow, 'get-emoji', async () => '🦄'));
 
 expectType<() => void>(detachListener);
 detachListener();
@@ -99,7 +101,20 @@ ipcRenderer.answerMain<string, string>('get-emoji', emojiName => {
 expectType<() => void>(detachListener2);
 detachListener2();
 
-expectError(ipcRenderer.callRenderer);
+expectType<Promise<unknown>>(
+	ipcRenderer.callRenderer(1, 'get-emoji', 'unicorn'),
+);
+expectType<Promise<string>>(
+	ipcRenderer.callRenderer<string, string>(1, 'get-emoji', 'unicorn', {signal: AbortSignal.timeout(1000)}),
+);
+expectError(ipcRenderer.callRenderer(browserWindow, 'get-emoji'));
+expectError(ipcRenderer.callRenderer(1, 'get-emoji', 'unicorn', {signal: 1}));
+
+expectType<() => void>(ipcRenderer.answerRenderer<string, string>('get-emoji', (emojiName, webContentsId) => {
+	expectType<string>(emojiName);
+	expectType<number>(webContentsId);
+	return '🦄';
+}));
 
 // Typed channels
 
@@ -116,12 +131,25 @@ type RendererChannels = {
 	'set-zoom'(zoom?: number): void;
 };
 
-const typedIpcMain: TypedMainProcessIpc<MainChannels, RendererChannels> = ipcMain;
-const typedIpcRenderer: TypedRendererProcessIpc<MainChannels, RendererChannels> = ipcRenderer;
+type RendererToRendererChannels = {
+	'get-selection'(): string;
+	'set-selection'(selection: string): boolean;
+};
+
+type Channels = {
+	main: MainChannels;
+	renderer: RendererChannels;
+	rendererToRenderer: RendererToRendererChannels;
+};
+
+const typedIpcMain: TypedMainProcessIpc<Channels> = ipcMain;
+const typedIpcRenderer: TypedRendererProcessIpc<Channels> = ipcRenderer;
 
 expectType<Promise<string>>(typedIpcMain.callRenderer(browserWindow, 'get-title'));
+expectType<Promise<string>>(typedIpcMain.callRenderer(browserWindow.webContents, 'get-title'));
 expectType<Promise<string>>(typedIpcMain.callFocusedRenderer('get-title'));
 expectError(typedIpcMain.callRenderer(browserWindow, 'get-emoji'));
+expectError(typedIpcMain.callRenderer(browserWindow, 'get-selection'));
 expectError(typedIpcMain.callFocusedRenderer('get-title', 'unicorn'));
 expectType<Promise<boolean>>(typedIpcMain.callRenderer(browserWindow, 'set-title', 'Unicorn'));
 expectError(typedIpcMain.callFocusedRenderer('set-title', 1));
@@ -152,22 +180,16 @@ expectType<Promise<string | boolean>>(typedIpcMain.callRenderer(browserWindow, .
 
 expectType<() => void>(typedIpcMain.answerRenderer('get-emoji', (emojiName, senderWindow) => {
 	expectType<string>(emojiName);
-	expectType<BrowserWindow>(senderWindow);
+	expectType<BrowserWindow | undefined>(senderWindow);
 	return '🦄';
 }));
 typedIpcMain.answerRenderer('get-count', async () => 1);
 typedIpcMain.answerRenderer('set-count', count => {
 	expectType<number | undefined>(count);
 });
-typedIpcMain.answerRenderer(browserWindow, 'get-emoji', async (emojiName, senderWindow) => {
-	expectType<string>(emojiName);
-	expectType<BrowserWindow>(senderWindow);
-	return '🦄';
-});
 expectError(typedIpcMain.answerRenderer('get-emoji', () => 1));
 expectError(typedIpcMain.answerRenderer('get-title', () => '🦄'));
-expectError(typedIpcMain.answerRenderer(browserWindow, 'get-count', async () => '1'));
-expectError(typedIpcMain.answerRenderer(browserWindow, 'get-title', () => '🦄'));
+expectError(typedIpcMain.answerRenderer(browserWindow, 'get-emoji', async () => '🦄'));
 
 typedIpcMain.sendToRenderers('anything', 1);
 typedIpcMain.handle('anything', () => '🦄');
@@ -198,8 +220,6 @@ expectError(typedIpcMain.callFocusedRenderer(rendererChannel, undefined, {signal
 const mainReplyChannel = Math.random() > 0.5 ? 'get-emoji' : 'get-count';
 expectError(typedIpcMain.answerRenderer(mainReplyChannel, () => 1));
 expectError(typedIpcMain.answerRenderer(mainReplyChannel, async () => '🦄'));
-expectError(typedIpcMain.answerRenderer(browserWindow, mainReplyChannel, () => '🦄'));
-expectError(typedIpcMain.answerRenderer(browserWindow, mainReplyChannel, async () => 1));
 expectError(typedIpcRenderer.answerMain(rendererChannel, () => 'Unicorn'));
 expectError(typedIpcRenderer.answerMain(rendererChannel, async () => true));
 
@@ -216,24 +236,67 @@ typedIpcRenderer.answerMain('set-title', title => {
 	return true;
 });
 typedIpcRenderer.answerMain('set-title', async () => true);
+typedIpcRenderer.answerMain('get-title', data => {
+	expectType<undefined>(data);
+	return '🦄';
+});
 expectError(typedIpcRenderer.answerMain('get-title', async () => 1));
 expectError(typedIpcRenderer.answerMain('get-emoji', () => '🦄'));
+expectError(typedIpcRenderer.answerMain('get-selection', () => '🦄'));
+
+// Renderer to renderer uses its own channel group.
+expectType<Promise<string>>(typedIpcRenderer.callRenderer(1, 'get-selection'));
+expectType<Promise<boolean>>(typedIpcRenderer.callRenderer(1, 'set-selection', 'Unicorn', {signal}));
+expectError(typedIpcRenderer.callRenderer(1, 'get-title'));
+expectError(typedIpcRenderer.callRenderer(1, 'set-selection'));
+expectError(typedIpcRenderer.callRenderer(1, 'set-selection', 1));
+expectError(typedIpcRenderer.callRenderer(1, 'set-selection', 'Unicorn', {signal: 1}));
+expectError(typedIpcRenderer.callRenderer(browserWindow, 'get-selection'));
+
+expectType<Promise<string>>(typedIpcRenderer.callRenderer(1, 'get-selection', undefined, {signal}));
+expectError(typedIpcRenderer.callRenderer(1, 'get-selection', 'unicorn'));
+expectError(typedIpcRenderer.callRenderer(1, 'get-selection', 'unicorn', {signal}));
+expectError(typedIpcRenderer.callRenderer('1', 'get-selection'));
+expectError(typedIpcRenderer.callRenderer(1, 'get-selection', {signal}));
+expectError(typedIpcRenderer.callMain('get-selection'));
+expectError(ipcRenderer.callRenderer('1', 'get-emoji'));
+
+const rendererToRendererChannel = Math.random() > 0.5 ? 'get-selection' : 'set-selection';
+expectError(typedIpcRenderer.callRenderer(1, rendererToRendererChannel, 'Unicorn'));
+
+const rendererToRendererArguments: ['get-selection'] | ['set-selection', string] = Math.random() > 0.5 ? ['get-selection'] : ['set-selection', 'Unicorn'];
+expectType<Promise<string | boolean>>(typedIpcRenderer.callRenderer(1, ...rendererToRendererArguments));
+
+expectType<() => void>(typedIpcRenderer.answerRenderer('set-selection', (selection, webContentsId) => {
+	expectType<string>(selection);
+	expectType<number>(webContentsId);
+	return true;
+}));
+expectError(typedIpcRenderer.answerRenderer('get-selection', async () => 1));
+expectError(typedIpcRenderer.answerRenderer('get-title', () => '🦄'));
+expectError(typedIpcRenderer.answerRenderer('get-emoji', () => '🦄'));
+expectError(typedIpcRenderer.answerRenderer(rendererToRendererChannel, () => 'Unicorn'));
 
 expectType<Promise<any>>(typedIpcRenderer.invoke('anything'));
 
-// Channels must take at most one data parameter
-expectError<TypedMainProcessIpc<{'get-emoji'(name: string, size: number): string}, RendererChannels>>(ipcMain);
+// Channels must take at most one data parameter.
+expectError<TypedMainProcessIpc<{main: {'get-emoji'(name: string, size: number): string}}>>(ipcMain);
+expectError<TypedRendererProcessIpc<{rendererToRenderer: {'get-emoji'(name: string, size: number): string}}>>(ipcRenderer);
 
-// One side can have no channels
-const mainOnlyIpcMain: TypedMainProcessIpc<MainChannels, Record<never, never>> = ipcMain;
-const mainOnlyIpcRenderer: TypedRendererProcessIpc<MainChannels, Record<never, never>> = ipcRenderer;
-const rendererOnlyIpcMain: TypedMainProcessIpc<Record<never, never>, RendererChannels> = ipcMain;
-const rendererOnlyIpcRenderer: TypedRendererProcessIpc<Record<never, never>, RendererChannels> = ipcRenderer;
+// Unknown group names are rejected.
+expectError<TypedMainProcessIpc<{mian: MainChannels}>>(ipcMain);
+
+// Groups can be left out.
+const mainOnlyIpcMain: TypedMainProcessIpc<{main: MainChannels}> = ipcMain;
+const mainOnlyIpcRenderer: TypedRendererProcessIpc<{main: MainChannels}> = ipcRenderer;
+const rendererOnlyIpcRenderer: TypedRendererProcessIpc<{renderer: RendererChannels}> = ipcRenderer;
 expectError(mainOnlyIpcMain.callFocusedRenderer('get-title'));
+expectError(mainOnlyIpcRenderer.callRenderer(1, 'get-selection'));
+const rendererToRendererOnlyIpcMain: TypedMainProcessIpc<{rendererToRenderer: RendererToRendererChannels}> = ipcMain;
 expectError(rendererOnlyIpcRenderer.callMain('get-emoji', 'unicorn'));
+expectError(rendererToRendererOnlyIpcMain.callFocusedRenderer('get-selection'));
 
-// Typed IPC objects must not be assignable to incompatible channel schemas.
-type EmptyChannels = Record<never, never>;
+// Typed IPC objects must not be assignable to incompatible schemas.
 type StringChannels = {foo(data: string): string};
 type NumberChannels = {foo(data: number): number};
 type NumberDataChannels = {foo(data: number): string};
@@ -241,25 +304,32 @@ type NumberReplyChannels = {foo(data: string): number};
 type WideDataChannels = {foo(data: string | number): string};
 type EquivalentStringChannels = {foo: (data: string) => Promise<string>};
 
-const stringMainIpc: TypedMainProcessIpc<StringChannels, EmptyChannels> = ipcMain;
-const stringRendererIpc: TypedRendererProcessIpc<StringChannels, EmptyChannels> = ipcRenderer;
-const stringRendererMainIpc: TypedMainProcessIpc<EmptyChannels, StringChannels> = ipcMain;
-const stringRendererRendererIpc: TypedRendererProcessIpc<EmptyChannels, StringChannels> = ipcRenderer;
+const stringMainIpc: TypedMainProcessIpc<{main: StringChannels}> = ipcMain;
+const stringRendererIpc: TypedRendererProcessIpc<{main: StringChannels}> = ipcRenderer;
+const stringRendererMainIpc: TypedMainProcessIpc<{renderer: StringChannels}> = ipcMain;
+const stringRendererRendererIpc: TypedRendererProcessIpc<{renderer: StringChannels}> = ipcRenderer;
+const stringRendererToRendererIpc: TypedRendererProcessIpc<{rendererToRenderer: StringChannels}> = ipcRenderer;
+const stringRendererToRendererMainIpc: TypedMainProcessIpc<{rendererToRenderer: StringChannels}> = ipcMain;
 
-expectError<TypedMainProcessIpc<NumberChannels, EmptyChannels>>(stringMainIpc);
-expectError<TypedRendererProcessIpc<NumberChannels, EmptyChannels>>(stringRendererIpc);
-expectError<TypedMainProcessIpc<EmptyChannels, NumberChannels>>(stringRendererMainIpc);
-expectError<TypedRendererProcessIpc<EmptyChannels, NumberChannels>>(stringRendererRendererIpc);
-expectError<TypedMainProcessIpc<NumberDataChannels, EmptyChannels>>(stringMainIpc);
-expectError<TypedRendererProcessIpc<NumberDataChannels, EmptyChannels>>(stringRendererIpc);
-expectError<TypedMainProcessIpc<NumberReplyChannels, EmptyChannels>>(stringMainIpc);
-expectError<TypedRendererProcessIpc<NumberReplyChannels, EmptyChannels>>(stringRendererIpc);
-expectError<TypedMainProcessIpc<WideDataChannels, EmptyChannels>>(stringMainIpc);
-expectError<TypedRendererProcessIpc<WideDataChannels, EmptyChannels>>(stringRendererIpc);
-expectError<TypedMainProcessIpc<EmptyChannels, WideDataChannels>>(stringRendererMainIpc);
-expectError<TypedRendererProcessIpc<EmptyChannels, WideDataChannels>>(stringRendererRendererIpc);
+expectError<TypedMainProcessIpc<{main: NumberChannels}>>(stringMainIpc);
+expectError<TypedRendererProcessIpc<{main: NumberChannels}>>(stringRendererIpc);
+expectError<TypedMainProcessIpc<{renderer: NumberChannels}>>(stringRendererMainIpc);
+expectError<TypedRendererProcessIpc<{renderer: NumberChannels}>>(stringRendererRendererIpc);
+expectError<TypedRendererProcessIpc<{rendererToRenderer: NumberChannels}>>(stringRendererToRendererIpc);
+expectError<TypedMainProcessIpc<{rendererToRenderer: NumberChannels}>>(stringRendererToRendererMainIpc);
+expectError<TypedMainProcessIpc<{main: NumberDataChannels}>>(stringMainIpc);
+expectError<TypedRendererProcessIpc<{main: NumberDataChannels}>>(stringRendererIpc);
+expectError<TypedMainProcessIpc<{main: NumberReplyChannels}>>(stringMainIpc);
+expectError<TypedRendererProcessIpc<{main: NumberReplyChannels}>>(stringRendererIpc);
+expectError<TypedMainProcessIpc<{main: WideDataChannels}>>(stringMainIpc);
+expectError<TypedRendererProcessIpc<{main: WideDataChannels}>>(stringRendererIpc);
+expectError<TypedMainProcessIpc<{renderer: WideDataChannels}>>(stringRendererMainIpc);
+expectError<TypedRendererProcessIpc<{renderer: WideDataChannels}>>(stringRendererRendererIpc);
+expectError<TypedRendererProcessIpc<{rendererToRenderer: WideDataChannels}>>(stringRendererToRendererIpc);
+expectError<TypedRendererProcessIpc<{renderer: StringChannels}>>(stringRendererToRendererIpc);
 
-expectAssignable<TypedMainProcessIpc<EquivalentStringChannels, EmptyChannels>>(stringMainIpc);
-expectAssignable<TypedRendererProcessIpc<EquivalentStringChannels, EmptyChannels>>(stringRendererIpc);
-expectAssignable<TypedMainProcessIpc<EmptyChannels, EquivalentStringChannels>>(stringRendererMainIpc);
-expectAssignable<TypedRendererProcessIpc<EmptyChannels, EquivalentStringChannels>>(stringRendererRendererIpc);
+expectAssignable<TypedMainProcessIpc<{main: EquivalentStringChannels}>>(stringMainIpc);
+expectAssignable<TypedRendererProcessIpc<{main: EquivalentStringChannels}>>(stringRendererIpc);
+expectAssignable<TypedMainProcessIpc<{renderer: EquivalentStringChannels}>>(stringRendererMainIpc);
+expectAssignable<TypedRendererProcessIpc<{renderer: EquivalentStringChannels}>>(stringRendererRendererIpc);
+expectAssignable<TypedRendererProcessIpc<{rendererToRenderer: EquivalentStringChannels}>>(stringRendererToRendererIpc);

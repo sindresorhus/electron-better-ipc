@@ -1,86 +1,30 @@
 import electron from 'electron';
-import {serializeError, deserializeError} from 'serialize-error';
-import {getResponseChannels} from './util.js';
+import {serializeError} from 'serialize-error';
+import {callChannel, forwardChannel, waitForReply} from './util.js';
 
-const {ipcMain, BrowserWindow} = electron;
+const {ipcMain, BrowserWindow, MessageChannelMain} = electron;
 const ipc = Object.create(ipcMain || {});
 
-ipc.callRenderer = (browserWindow, channel, data, {signal} = {}) => {
-	const {promise, resolve, reject} = Promise.withResolvers();
-
-	if (!browserWindow) {
-		reject(new Error('Browser window required'));
-		return promise;
+ipc.callRenderer = async (target, channel, data, {signal} = {}) => {
+	if (!target) {
+		throw new Error('Browser window required');
 	}
 
 	if (typeof channel !== 'string' || channel.length === 0) {
-		reject(new Error('Channel required'));
-		return promise;
+		throw new Error('Channel required');
 	}
 
-	if (!browserWindow.webContents || browserWindow.isDestroyed?.() || browserWindow.webContents.isDestroyed?.()) {
-		reject(new Error('Browser window is destroyed'));
-		return promise;
+	// Check the target first, since reading `webContents` of a destroyed `BrowserWindow` throws.
+	const webContents = target.isDestroyed() ? undefined : (target.webContents ?? target);
+	if (!webContents || webContents.isDestroyed()) {
+		throw new Error('Browser window is destroyed');
 	}
 
-	if (signal?.aborted) {
-		reject(signal.reason);
-		return promise;
-	}
+	signal?.throwIfAborted();
 
-	const {sendChannel, dataChannel, errorChannel} = getResponseChannels(channel);
-
-	const cleanup = () => {
-		ipcMain.off(dataChannel, onData);
-		ipcMain.off(errorChannel, onError);
-		signal?.removeEventListener('abort', onAbort);
-	};
-
-	const targetId = browserWindow.id;
-	const isFromTargetWindow = event => {
-		const senderWindow = BrowserWindow.fromWebContents(event.sender);
-		return targetId !== undefined && senderWindow !== undefined && senderWindow !== null && senderWindow.id === targetId;
-	};
-
-	const onData = (event, result) => {
-		if (!isFromTargetWindow(event)) {
-			return;
-		}
-
-		cleanup();
-		resolve(result);
-	};
-
-	const onError = (event, error) => {
-		if (!isFromTargetWindow(event)) {
-			return;
-		}
-
-		cleanup();
-		reject(deserializeError(error));
-	};
-
-	const onAbort = () => {
-		cleanup();
-		reject(signal.reason);
-	};
-
-	ipcMain.on(dataChannel, onData);
-	ipcMain.on(errorChannel, onError);
-	signal?.addEventListener('abort', onAbort, {once: true});
-
-	try {
-		browserWindow.webContents.send(sendChannel, {
-			dataChannel,
-			errorChannel,
-			userData: data,
-		});
-	} catch (error) {
-		cleanup();
-		reject(error);
-	}
-
-	return promise;
+	const {port1, port2} = new MessageChannelMain();
+	webContents.postMessage(callChannel, {channel, data}, [port2]);
+	return waitForReply(port1, signal);
 };
 
 ipc.callFocusedRenderer = async (...arguments_) => {
@@ -92,33 +36,10 @@ ipc.callFocusedRenderer = async (...arguments_) => {
 	return ipc.callRenderer(focusedWindow, ...arguments_);
 };
 
-ipc.answerRenderer = (browserWindowOrChannel, channelOrCallback, callbackOrNothing) => {
-	let expectedWindow;
-	let channel;
-	let callback;
-
-	if (callbackOrNothing === undefined) {
-		channel = browserWindowOrChannel;
-		callback = channelOrCallback;
-	} else {
-		expectedWindow = browserWindowOrChannel;
-		channel = channelOrCallback;
-		callback = callbackOrNothing;
-
-		if (!expectedWindow) {
-			throw new Error('Browser window required');
-		}
-	}
-
+ipc.answerRenderer = (channel, callback) => {
 	ipcMain.handle(channel, async (event, data) => {
-		const senderWindow = BrowserWindow.fromWebContents(event.sender);
-
-		if (expectedWindow && (!senderWindow || expectedWindow.id !== senderWindow.id)) {
-			return {error: serializeError(new Error('Message received for a different window'))};
-		}
-
 		try {
-			return {value: await callback(data, senderWindow)};
+			return {value: await callback(data, BrowserWindow.fromWebContents(event.sender) ?? undefined)};
 		} catch (error) {
 			return {error: serializeError(error)};
 		}
@@ -136,5 +57,32 @@ ipc.sendToRenderers = (channel, data) => {
 		}
 	}
 };
+
+// Pass the port of an `ipcRenderer.callRenderer` call on to the target page, which then replies to the caller directly.
+const forwardRendererCall = (event, message) => {
+	// `ports` is not set when a renderer uses `ipcRenderer.send()` instead of `ipcRenderer.postMessage()`.
+	const [port] = event.ports ?? [];
+	if (!port) {
+		return;
+	}
+
+	try {
+		const {webContentsId, channel, data} = message;
+
+		const webContents = electron.webContents.fromId(webContentsId);
+		if (!webContents || webContents.isDestroyed()) {
+			throw new Error(`No web contents with ID ${webContentsId}`);
+		}
+
+		webContents.postMessage(callChannel, {channel, data, senderId: event.sender.id}, [port]);
+	} catch (error) {
+		port.postMessage({error: serializeError(error)});
+	}
+};
+
+// Another copy of this module may already forward the calls.
+if (ipcMain?.listenerCount(forwardChannel) === 0) {
+	ipcMain.on(forwardChannel, forwardRendererCall);
+}
 
 export {ipc as ipcMain};
